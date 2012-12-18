@@ -1,0 +1,105 @@
+import sqlalchemy as sa
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.query import Query
+from sqlalchemy.ext.declarative import declarative_base
+
+from sqlalchemy_searchable import Searchable, SearchQueryMixin
+
+
+engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
+Base = declarative_base()
+
+
+class TestCase(object):
+    def setup_method(self, method):
+        Base.metadata.create_all(engine)
+
+        Session = sessionmaker(bind=engine)
+        self.session = Session()
+
+    def teardown_method(self, method):
+        self.session.close_all()
+        Base.metadata.drop_all(engine)
+
+
+class TextItemQuery(Query, SearchQueryMixin):
+    pass
+
+
+class TextItem(Base, Searchable):
+    __searchable_columns__ = ['name', 'content']
+    __search_options__ = {
+        'tablename': 'textitem',
+        'search_vector_name': 'search_vector',
+        'search_trigger_name': '{table}_search_update',
+        'search_index_name': '{table}_search_index',
+        'catalog': 'pg_catalog.english'
+    }
+    __tablename__ = 'textitem'
+
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+
+    name = sa.Column(sa.Unicode(255))
+
+    content = sa.Column(sa.UnicodeText)
+
+
+class Article(TextItem):
+    __tablename__ = 'article'
+    id = sa.Column(sa.Integer, sa.ForeignKey(TextItem.id), primary_key=True)
+
+    created_at = sa.Column(sa.DateTime)
+
+
+class TestSearchableMixin(TestCase):
+    def test_creates_search_index(self):
+        rows = self.session.execute(
+            """SELECT column_name
+            FROM information_schema.columns WHERE table_name = 'textitem'"""
+        ).fetchall()
+        assert 'search_vector' in map(lambda a: a[0], rows)
+
+
+class TestSearchQueryMixin(TestCase):
+    def setup_method(self, method):
+        TestCase.setup_method(self, method)
+        self.session.add(TextItem(name=u'index', content=u'some content'))
+        self.session.add(TextItem(name=u'admin', content=u'admin content'))
+        self.session.add(
+            TextItem(name=u'home', content=u'this is the home page')
+        )
+        self.session.commit()
+
+    def test_search_supports_term_splitting(self):
+        assert (
+            TextItemQuery(TextItem, self.session)
+            .search('content').count() == 2
+        )
+
+    def test_term_splitting_supports_multiple_spaces(self):
+        query = TextItemQuery(TextItem, self.session)
+        assert query.search('content  some').first().name == u'index'
+        assert query.search('content   some').first().name == u'index'
+        assert query.search('  ').count() == 3
+
+    def test_search_removes_illegal_characters(self):
+        assert TextItemQuery(TextItem, self.session).search(':@#').count()
+
+
+class TestSearchableInheritance(TestCase):
+    def setup_method(self, method):
+        TestCase.setup_method(self, method)
+        self.session.add(Article(name=u'index', content=u'some content'))
+        self.session.add(Article(name=u'admin', content=u'admin content'))
+        self.session.add(
+            Article(name=u'home', content=u'this is the home page')
+        )
+        self.session.commit()
+
+    def test_supports_inheritance(self):
+        assert (
+            TextItemQuery(Article, self.session)
+            .search('content').count() == 2
+        )
