@@ -96,8 +96,8 @@ In the following example we use Finnish catalog instead of the default English o
 * catalog - postgresql catalog to be used, default: pg_catalog.english
 
 
-Using Searchable with Flask-SQLAlchemy
---------------------------------------
+Flask-SQLAlchemy integration
+----------------------------
 
 SQLAlchemy-Searchable can be neatly integrated into Flask-SQLAlchemy using SearchQueryMixin class.
 
