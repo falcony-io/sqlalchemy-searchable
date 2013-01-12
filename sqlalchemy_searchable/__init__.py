@@ -31,9 +31,10 @@ class SearchQueryMixin(object):
 
     def search(self, search_query, tablename=None):
         """
-        Search text items with full text search.
+        Search given query with full text search.
 
-        :param term: the search term
+        :param search_query: the search query
+        :param tablename: custom tablename
         """
         if not search_query:
             return self
@@ -57,15 +58,24 @@ def attach_search_indexes(mapper, class_):
 event.listen(Mapper, 'instrument_class', attach_search_indexes)
 
 
+DEFAULT_SEARCH_OPTIONS = {
+    'tablename': None,
+    'search_vector_name': 'search_vector',
+    'search_trigger_name': '{table}_search_update',
+    'search_index_name': '{table}_search_index',
+    'catalog': 'pg_catalog.english'
+}
+
+
 class Searchable(object):
     __searchable_columns__ = []
-    __search_options__ = {
-        'tablename': None,
-        'search_vector_name': 'search_vector',
-        'search_trigger_name': '{table}_search_update',
-        'search_index_name': '{table}_search_index',
-        'catalog': 'pg_catalog.english'
-    }
+
+    @classmethod
+    def _get_search_option(cls, name):
+        try:
+            return cls.__search_options__[name]
+        except (AttributeError, KeyError):
+            return DEFAULT_SEARCH_OPTIONS[name]
 
     @classmethod
     def _inspect_searchable_tablename(cls):
@@ -87,8 +97,7 @@ class Searchable(object):
         Returns the ddl for the search vector.
         """
         tablename = cls.__tablename__
-        options = cls.__search_options__
-        search_vector_name = options['search_vector_name']
+        search_vector_name = cls._get_search_option('search_vector_name')
 
         return DDL(
             """
@@ -107,9 +116,8 @@ class Searchable(object):
         Returns the ddl for creating the actual search index.
         """
         tablename = cls.__tablename__
-        options = cls.__search_options__
-        search_vector_name = options['search_vector_name']
-        search_index_name = options['search_index_name'].format(
+        search_vector_name = cls._get_search_option('search_vector_name')
+        search_index_name = cls._get_search_option('search_index_name').format(
             table=tablename
         )
         return DDL(
@@ -130,11 +138,10 @@ class Searchable(object):
         Returns the ddl for creating an automatically updated search trigger.
         """
         tablename = cls.__tablename__
-        options = cls.__search_options__
-        search_vector_name = options['search_vector_name']
-        search_trigger_name = options['search_trigger_name'].format(
-            table=tablename
-        )
+        search_vector_name = cls._get_search_option('search_vector_name')
+        search_trigger_name = cls._get_search_option(
+            'search_trigger_name'
+        ).format(table=tablename)
 
         return DDL(
             """
@@ -148,7 +155,7 @@ class Searchable(object):
                 table=tablename,
                 arguments=', '.join([
                     search_vector_name,
-                    "'%s'" % cls.__search_options__['catalog']] +
+                    "'%s'" % cls._get_search_option('catalog')] +
                     cls.__searchable_columns__
                 )
             )

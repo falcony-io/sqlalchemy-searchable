@@ -35,7 +35,6 @@ class TextItem(Base, Searchable):
         'search_vector_name': 'search_vector',
         'search_trigger_name': '{table}_search_update',
         'search_index_name': '{table}_search_index',
-        'catalog': 'pg_catalog.english'
     }
     __tablename__ = 'textitem'
 

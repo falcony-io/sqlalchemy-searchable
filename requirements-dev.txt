@@ -1,0 +1,6 @@
+-r requirements.txt
+pysqlite==2.6.3
+pytest==2.2.3
+Pygments==1.2
+Jinja2==2.3
+docutils>=0.10
