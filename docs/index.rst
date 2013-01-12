@@ -34,7 +34,8 @@ We want the name and content to be fulltext indexed, hence we put them in specia
         content = sa.Column(sa.UnicodeText)
 
 
-Now lets create some dummy data. ::
+Now lets create some dummy data.
+::
 
 
     engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
@@ -51,7 +52,8 @@ Now lets create some dummy data. ::
     session.commit()
 
 
-After we've created the articles, we can search trhough them. ::
+After we've created the articles, we can search trhough them.
+::
 
 
     from sqlalchemy_searchable import search
@@ -70,6 +72,20 @@ Search options
 
 SQLAlchemy-Searchable provides number of customization options for the automatically generated
 search trigger, index and search_vector columns.
+
+You can define the custom search options in your model by defining __search_options__ property.
+In the following example we use Finnish catalog instead of the default English one.
+::
+
+
+    class Article(Base, Searchable):
+        __tablename__ = 'article'
+        __searchable_columns = ['name', 'content']
+
+        __search_options__ = {
+            'catalog': 'pg_catalog.finnish'
+        }
+
 
 * search_vector_name - name of the search vector column, default: search_vector
 
