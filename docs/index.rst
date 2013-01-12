@@ -95,3 +95,45 @@ In the following example we use Finnish catalog instead of the default English o
 
 * catalog - postgresql catalog to be used, default: pg_catalog.english
 
+
+Using Searchable with Flask-SQLAlchemy
+--------------------------------------
+
+SQLAlchemy-Searchable can be neatly integrated into Flask-SQLAlchemy using SearchQueryMixin class.
+
+
+Example ::
+
+    from flask.ext.sqlalchemy import SQLAlchemy, BaseQuery
+    from sqlalchemy_searchable import SearchQueryMixin
+
+
+    db = SQLAlchemy()
+
+
+    class ArticleQuery(BaseQuery, SearchQueryMixin):
+        pass
+
+
+    class Article(db.Model, Searchable):
+        query_class = ArticleQuery
+        __tablename__ = 'article'
+        __searchable_columns = ['name', 'content']
+
+        id = sa.Column(sa.Integer, primary_key=True)
+        name = sa.Column(sa.Unicode(255))
+        content = sa.Column(sa.UnicodeText)
+
+
+Now this is where the fun begins! SearchQueryMixin provides search method for ArticleQuery. You can chain calls just like when using query filter calls.
+Here we search for first 5 articles that contain the word 'Finland'.
+::
+
+    Article.query.search(u'Finland').limit(5).all()
+
+
+
+
+
+
+

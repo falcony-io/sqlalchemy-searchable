@@ -20,14 +20,7 @@ def safe_search_terms(query):
 
 class SearchQueryMixin(object):
     def search_filter(self, term, tablename=None):
-        if not tablename:
-            mapper = self._entities[0].entity_zero
-            entity = mapper.class_
-            if entity.__search_options__['tablename']:
-                tablename = entity.__search_options__['tablename']
-            else:
-                tablename = entity._inspect_searchable_tablename()
-        return '%s.search_vector @@ to_tsquery(:term)' % tablename
+        return search_filter(self, term, tablename)
 
     def search(self, search_query, tablename=None):
         """
@@ -47,6 +40,39 @@ class SearchQueryMixin(object):
             self.filter(self.search_filter(search_query, tablename))
             .params(term=' & '.join(terms))
         )
+
+
+def search_filter(query, term, tablename=None):
+    if not tablename:
+        mapper = query._entities[0].entity_zero
+        entity = mapper.class_
+        if entity.__search_options__['tablename']:
+            tablename = entity.__search_options__['tablename']
+        else:
+            tablename = entity._inspect_searchable_tablename()
+    return '%s.search_vector @@ to_tsquery(:term)' % tablename
+
+
+def search(query, search_query, tablename=None):
+    """
+    Search given query with full text search.
+
+    :param search_query: the search query
+    :param tablename: custom tablename
+    """
+    if not search_query:
+        return query
+
+    terms = safe_search_terms(search_query)
+    if not terms:
+        return query
+
+    if hasattr(query, 'search_filter'):
+        query = query.filter(query.search_filter(search_query, tablename))
+    else:
+        query = search_filter(query, search_query, tablename)
+
+    return query.params(term=' & '.join(terms))
 
 
 def attach_search_indexes(mapper, class_):
