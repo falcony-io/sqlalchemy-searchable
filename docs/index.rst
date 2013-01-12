@@ -6,7 +6,7 @@ SQLAlchemy-Searchable provides FullText search capabilities for SQLAlchemy model
 
 
 QuickStart
-==========
+----------
 
 1. Make your SQLAlchemy declarative model inherit Searchable mixin.
 2. Define searchable columns and custom search configuration
@@ -19,7 +19,7 @@ We want the name and content to be fulltext indexed, hence we put them in specia
     import sqlalchemy as sa
     from sqlalchemy.ext.declarative import declarative_base
 
-    from sqlalchemy_searchable import Searchable, SearchQueryMixin
+    from sqlalchemy_searchable import Searchable
 
 
     Base = declarative_base()
@@ -35,6 +35,7 @@ We want the name and content to be fulltext indexed, hence we put them in specia
 
 
 Now lets create some dummy data. ::
+
 
     engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
     Base.metadata.create_all(engine)
@@ -52,6 +53,7 @@ Now lets create some dummy data. ::
 
 After we've created the articles, we can search trhough them. ::
 
+
     from sqlalchemy_searchable import search
 
 
@@ -63,4 +65,17 @@ After we've created the articles, we can search trhough them. ::
     >>> First article
 
 
+Search options
+--------------
+
+SQLAlchemy-Searchable provides number of customization options for the automatically generated
+search trigger, index and search_vector columns.
+
+* search_vector_name - name of the search vector column, default: search_vector
+
+* search_trigger_name - name of the search database trigger, default: {table}_search_update
+
+* search_index_name - name of the search index, default: {table}_search_index
+
+* catalog - postgresql catalog to be used, default: pg_catalog.english
 
