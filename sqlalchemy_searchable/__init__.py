@@ -6,8 +6,9 @@ from sqlalchemy.orm.mapper import Mapper
 
 
 def safe_search_terms(query):
-    # Remove all illegal characters from the search query.
-    query = re.sub(r'[\W\s]+', ' ', query).strip()
+    # Remove all illegal characters from the search query. Also remove multiple
+    # spaces.
+    query = re.sub(r'[():|&!*@#\s]+', ' ', query).strip()
     if not query:
         return []
 

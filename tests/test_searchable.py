@@ -96,6 +96,12 @@ class TestSearchQueryMixin(TestCase):
         )
         self.session.commit()
 
+    def test_searches_trhough_all_fulltext_indexed_fields(self):
+        assert (
+            TextItemQuery(TextItem, self.session)
+            .search('admin').count() == 1
+        )
+
     def test_search_supports_term_splitting(self):
         assert (
             TextItemQuery(TextItem, self.session)
@@ -109,7 +115,24 @@ class TestSearchQueryMixin(TestCase):
         assert query.search('  ').count() == 3
 
     def test_search_removes_illegal_characters(self):
-        assert TextItemQuery(TextItem, self.session).search(':@#').count()
+        assert TextItemQuery(TextItem, self.session).search(':!').count()
+
+    def test_search_removes_stopword_characters(self):
+        assert TextItemQuery(TextItem, self.session).search('@#').count()
+
+
+class TestForeignCharacterSupport(TestCase):
+    def setup_method(self, method):
+        TestCase.setup_method(self, method)
+        self.session.add(TextItem(name=u'index', content=u'ähtäri örrimörri'))
+        self.session.add(TextItem(name=u'admin', content=u'ahtari orrimorri'))
+        self.session.commit()
+
+    def test_search_supports_non_english_characters(self):
+        query = TextItemQuery(TextItem, self.session)
+        assert query.search(u'ähtäri').count() == 1
+        query = TextItemQuery(TextItem, self.session)
+        assert query.search(u'orrimorri').count() == 1
 
 
 class TestSearchableInheritance(TestCase):
