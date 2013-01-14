@@ -5,8 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
 from sqlalchemy.ext.declarative import declarative_base
 
-from sqlalchemy_searchable import Searchable, SearchQueryMixin
-
+from sqlalchemy_searchable import (
+    Searchable, SearchQueryMixin, safe_search_terms
+)
 
 engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
 Base = declarative_base()
@@ -150,3 +151,15 @@ class TestSearchableInheritance(TestCase):
             TextItemQuery(Article, self.session)
             .search('content').count() == 2
         )
+
+
+class TestSafeSearchTerms(object):
+    def test_uses_pgsql_wildcard_by_default(self):
+        assert safe_search_terms('star wars') == [
+            'star:*', 'wars:*'
+        ]
+
+    def test_supports_custom_wildcards(self):
+        assert safe_search_terms('star wars', wildcard='*') == [
+            'star*', 'wars*'
+        ]

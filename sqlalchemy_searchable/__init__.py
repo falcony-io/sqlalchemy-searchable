@@ -5,7 +5,7 @@ from sqlalchemy.schema import DDL
 from sqlalchemy.orm.mapper import Mapper
 
 
-def safe_search_terms(query):
+def safe_search_terms(query, wildcard=':*'):
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
     query = re.sub(r'[():|&!*@#\s]+', ' ', query).strip()
@@ -16,7 +16,7 @@ def safe_search_terms(query):
     terms = query.split(' ')
 
     # Search for words starting with the given search terms.
-    return map(lambda a: a + ':*', terms)
+    return map(lambda a: a + wildcard, terms)
 
 
 class SearchQueryMixin(object):
