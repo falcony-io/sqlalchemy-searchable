@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sqlalchemy as sa
 
 from sqlalchemy import create_engine
