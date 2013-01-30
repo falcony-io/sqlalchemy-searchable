@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.1.2 (30.1.2013)
+^^^^^^^^^^^^^^^^
+
+- Added psycopg2 to requirements, fixed travis.yml
+
+
 0.1.1 (12.1.2013)
 ^^^^^^^^^^^^^^^^
 

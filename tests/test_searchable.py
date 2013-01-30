@@ -9,7 +9,9 @@ from sqlalchemy_searchable import (
     Searchable, SearchQueryMixin, safe_search_terms
 )
 
-engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
+engine = create_engine(
+    'postgres://postgres@localhost/sqlalchemy_searchable_test'
+)
 Base = declarative_base()
 
 

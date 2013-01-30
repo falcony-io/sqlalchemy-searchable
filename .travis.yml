@@ -1,3 +1,6 @@
+before_script:
+  - psql -c 'create database sqlalchemy_searchable_test;' -U postgres
+
 language: python
 python:
   - 2.5
