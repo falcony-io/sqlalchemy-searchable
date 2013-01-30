@@ -1,5 +1,5 @@
 """
-sqlalchemy-searchable
+SQLAlchemy-Searchable
 ---------------------
 
 Provides fulltext search capabilities for declarative SQLAlchemy models.
@@ -23,7 +23,7 @@ class PyTest(Command):
         raise SystemExit(errno)
 
 setup(
-    name='sqlalchemy-searchable',
+    name='SQLAlchemy-Searchable',
     version='0.1.2',
     url='https://github.com/kvesteri/sqlalchemy-searchable',
     license='BSD',
