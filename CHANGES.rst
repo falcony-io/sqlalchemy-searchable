@@ -3,6 +3,11 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+0.1.3 (30.1.2013)
+^^^^^^^^^^^^^^^^
+
+- Added support for custom language parameter in query search functions
+
 
 0.1.2 (30.1.2013)
 ^^^^^^^^^^^^^^^^

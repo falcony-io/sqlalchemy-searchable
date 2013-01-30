@@ -20,15 +20,16 @@ def safe_search_terms(query, wildcard=':*'):
 
 
 class SearchQueryMixin(object):
-    def search_filter(self, term, tablename=None):
-        return search_filter(self, term, tablename)
+    def search_filter(self, term, tablename=None, language=None):
+        return search_filter(self, term, tablename, language)
 
-    def search(self, search_query, tablename=None):
+    def search(self, search_query, tablename=None, language=None):
         """
         Search given query with full text search.
 
         :param search_query: the search query
         :param tablename: custom tablename
+        :param language: language to be passed to to_tsquery
         """
         if not search_query:
             return self
@@ -38,12 +39,14 @@ class SearchQueryMixin(object):
             return self
 
         return (
-            self.filter(self.search_filter(search_query, tablename))
-            .params(term=' & '.join(terms))
+            self.filter(
+                self.search_filter(search_query, tablename, language)
+            )
+            .params(term=u' & '.join(terms))
         )
 
 
-def search_filter(query, term, tablename=None):
+def search_filter(query, term, tablename=None, language=None):
     if not tablename:
         mapper = query._entities[0].entity_zero
         entity = mapper.class_
@@ -51,15 +54,22 @@ def search_filter(query, term, tablename=None):
             tablename = entity.__search_options__['tablename']
         else:
             tablename = entity._inspect_searchable_tablename()
-    return '%s.search_vector @@ to_tsquery(:term)' % tablename
+
+    if not language:
+        return '%s.search_vector @@ to_tsquery(:term)' % tablename
+    else:
+        return "%s.search_vector @@ to_tsquery('%s', :term)" % (
+            tablename, language
+        )
 
 
-def search(query, search_query, tablename=None):
+def search(query, search_query, tablename=None, language=None):
     """
     Search given query with full text search.
 
     :param search_query: the search query
     :param tablename: custom tablename
+    :param language: language to be passed to to_tsquery
     """
     if not search_query:
         return query
@@ -69,9 +79,11 @@ def search(query, search_query, tablename=None):
         return query
 
     if hasattr(query, 'search_filter'):
-        query = query.filter(query.search_filter(search_query, tablename))
+        query = query.filter(
+            query.search_filter(search_query, tablename, language)
+        )
     else:
-        query = search_filter(query, search_query, tablename)
+        query = search_filter(query, search_query, tablename, language)
 
     return query.params(term=' & '.join(terms))
 

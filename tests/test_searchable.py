@@ -138,6 +138,11 @@ class TestForeignCharacterSupport(TestCase):
         query = TextItemQuery(TextItem, self.session)
         assert query.search(u'orrimorri').count() == 1
 
+    def test_supports_language_parameter(self):
+        query = TextItemQuery(TextItem, self.session)
+        query = query.search(u'orrimorri', language='finnish')
+        assert "to_tsquery('finnish', :term)" in str(query)
+
 
 class TestSearchableInheritance(TestCase):
     def setup_method(self, method):
