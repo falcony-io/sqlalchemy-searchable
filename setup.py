@@ -24,7 +24,7 @@ class PyTest(Command):
 
 setup(
     name='SQLAlchemy-Searchable',
-    version='0.1.3',
+    version='0.1.4',
     url='https://github.com/kvesteri/sqlalchemy-searchable',
     license='BSD',
     author='Konsta Vesterinen',

@@ -23,6 +23,13 @@ class TestCase(object):
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
+        TextItem.__search_options__ = {
+            'tablename': 'textitem',
+            'search_vector_name': 'search_vector',
+            'search_trigger_name': '{table}_search_update',
+            'search_index_name': '{table}_search_index',
+        }
+
     def teardown_method(self, method):
         self.session.close_all()
         Base.metadata.drop_all(engine)
@@ -123,6 +130,11 @@ class TestSearchQueryMixin(TestCase):
 
     def test_search_removes_stopword_characters(self):
         assert TextItemQuery(TextItem, self.session).search('@#').count()
+
+    def test_works_without_tablename_defined(self):
+        del TextItem.__search_options__
+        query = TextItemQuery(TextItem, self.session)
+        assert query.search('content').count()
 
 
 class TestForeignCharacterSupport(TestCase):

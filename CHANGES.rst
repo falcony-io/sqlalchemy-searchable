@@ -3,6 +3,13 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+
+0.1.4 (30.1.2013)
+^^^^^^^^^^^^^^^^
+
+- Fixed search_filter func when using empty or undefined search options
+
+
 0.1.3 (30.1.2013)
 ^^^^^^^^^^^^^^^^
 

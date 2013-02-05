@@ -50,9 +50,12 @@ def search_filter(query, term, tablename=None, language=None):
     if not tablename:
         mapper = query._entities[0].entity_zero
         entity = mapper.class_
-        if entity.__search_options__['tablename']:
+
+        try:
             tablename = entity.__search_options__['tablename']
-        else:
+        except AttributeError:
+            tablename = entity._inspect_searchable_tablename()
+        except KeyError:
             tablename = entity._inspect_searchable_tablename()
 
     if not language:
