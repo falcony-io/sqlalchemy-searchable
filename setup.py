@@ -24,7 +24,7 @@ class PyTest(Command):
 
 setup(
     name='SQLAlchemy-Searchable',
-    version='0.1.4',
+    version='0.1.5',
     url='https://github.com/kvesteri/sqlalchemy-searchable',
     license='BSD',
     author='Konsta Vesterinen',
@@ -39,7 +39,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'SQLAlchemy==0.7.8',
+        'SQLAlchemy>=0.7.8',
         'psycopg2==2.4.6'
     ],
     cmdclass={'test': PyTest},

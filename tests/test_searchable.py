@@ -7,7 +7,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy_searchable import (
-    Searchable, SearchQueryMixin, safe_search_terms
+    Searchable, SearchQueryMixin, safe_search_terms, search_filter
 )
 
 engine = create_engine(
@@ -54,6 +54,13 @@ class TextItem(Base, Searchable):
     name = sa.Column(sa.Unicode(255))
 
     content = sa.Column(sa.UnicodeText)
+
+
+class Order(Base, Searchable):
+    __searchable_columns__ = ['name']
+    __tablename__ = 'order'
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    name = sa.Column(sa.Unicode(255))
 
 
 class Article(TextItem):
@@ -135,6 +142,15 @@ class TestSearchQueryMixin(TestCase):
         del TextItem.__search_options__
         query = TextItemQuery(TextItem, self.session)
         assert query.search('content').count()
+
+
+class TestSearchFilter(TestCase):
+    def test_quotes_identifiers(self):
+        query = self.session.query(Order)
+        assert (
+            search_filter(query, u'something') ==
+            '"order".search_vector @@ to_tsquery(:term)'
+        )
 
 
 class TestForeignCharacterSupport(TestCase):

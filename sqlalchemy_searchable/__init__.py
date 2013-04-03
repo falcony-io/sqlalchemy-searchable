@@ -59,10 +59,12 @@ def search_filter(query, term, tablename=None, language=None):
             tablename = entity._inspect_searchable_tablename()
 
     if not language:
-        return '%s.search_vector @@ to_tsquery(:term)' % tablename
+        return '%s.search_vector @@ to_tsquery(:term)' % (
+            quote_identifier(tablename)
+        )
     else:
         return "%s.search_vector @@ to_tsquery('%s', :term)" % (
-            tablename, language
+            quote_identifier(tablename), language
         )
 
 
@@ -89,6 +91,12 @@ def search(query, search_query, tablename=None, language=None):
         query = search_filter(query, search_query, tablename, language)
 
     return query.params(term=' & '.join(terms))
+
+
+def quote_identifier(identifier):
+    """Adds double quotes to given identifier. Since PostgreSQL is the only
+    supported dialect we don't need dialect specific stuff here"""
+    return '"%s"' % identifier
 
 
 def attach_search_indexes(mapper, class_):
@@ -147,7 +155,7 @@ class Searchable(object):
             ADD COLUMN {search_vector_name} tsvector
             """
             .format(
-                table=tablename,
+                table=quote_identifier(tablename),
                 search_vector_name=search_vector_name
             )
         )
@@ -168,7 +176,7 @@ class Searchable(object):
             USING gin({search_vector_name})
             """
             .format(
-                table=tablename,
+                table=quote_identifier(tablename),
                 search_index_name=search_index_name,
                 search_vector_name=search_vector_name
             )
@@ -194,7 +202,7 @@ class Searchable(object):
             """
             .format(
                 search_trigger_name=search_trigger_name,
-                table=tablename,
+                table=quote_identifier(tablename),
                 arguments=', '.join([
                     search_vector_name,
                     "'%s'" % cls._get_search_option('catalog')] +
