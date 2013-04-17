@@ -88,8 +88,9 @@ def search(query, search_query, tablename=None, language=None):
             query.search_filter(search_query, tablename, language)
         )
     else:
-        query = search_filter(query, search_query, tablename, language)
-
+        query = query.filter(
+            search_filter(query, search_query, tablename, language)
+        )
     return query.params(term=' & '.join(terms))
 
 

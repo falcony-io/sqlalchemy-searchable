@@ -7,7 +7,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy_searchable import (
-    Searchable, SearchQueryMixin, safe_search_terms, search_filter
+    Searchable, SearchQueryMixin, safe_search_terms, search_filter, search
 )
 
 engine = create_engine(
@@ -142,6 +142,15 @@ class TestSearchQueryMixin(TestCase):
         del TextItem.__search_options__
         query = TextItemQuery(TextItem, self.session)
         assert query.search('content').count()
+
+
+class TestSearchFunction(TestCase):
+    def test_supports_session_queries(self):
+        query = self.session.query(Order)
+        assert (
+            '"order".search_vector @@ to_tsquery(:term)' in
+            str(search(query, 'something'))
+        )
 
 
 class TestSearchFilter(TestCase):

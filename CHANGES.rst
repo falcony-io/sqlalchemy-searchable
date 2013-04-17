@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.1.6 (2013-04-17)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed search function when using session based queries
+
+
 0.1.5 (2013-04-03)
 ^^^^^^^^^^^^^^^^^^
 
