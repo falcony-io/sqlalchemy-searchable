@@ -148,7 +148,7 @@ class TestSearchFunction(TestCase):
     def test_supports_session_queries(self):
         query = self.session.query(Order)
         assert (
-            '"order".search_vector @@ to_tsquery(:term)' in
+            '''"order".search_vector @@ to_tsquery('english', :term)''' in
             str(search(query, 'something'))
         )
 
@@ -158,7 +158,7 @@ class TestSearchFilter(TestCase):
         query = self.session.query(Order)
         assert (
             search_filter(query, u'something') ==
-            '"order".search_vector @@ to_tsquery(:term)'
+            '''"order".search_vector @@ to_tsquery('english', :term)'''
         )
 
 

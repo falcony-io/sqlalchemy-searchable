@@ -59,6 +59,9 @@ def search_filter(query, term, tablename=None, language=None):
             tablename = entity._inspect_searchable_tablename()
 
     if not language:
+        language = mapper.class_._get_search_option('catalog').split('.')[-1]
+
+    if not language:
         return '%s.search_vector @@ to_tsquery(:term)' % (
             quote_identifier(tablename)
         )
