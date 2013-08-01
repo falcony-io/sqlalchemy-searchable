@@ -4,6 +4,19 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.2.0 (2013-08-01)
+^^^^^^^^^^^^^^^^^^
+
+- Added dependency to SQLAlchemy-Utils
+- Search vectors must be added manually to each class
+
+
+0.1.7 (2013-07-30)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed safe_search_terms single quote handling
+
+
 0.1.7 (2013-05-22)
 ^^^^^^^^^^^^^^^^^^
 

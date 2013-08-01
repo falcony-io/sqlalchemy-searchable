@@ -9,6 +9,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_searchable import (
     Searchable, SearchQueryMixin, safe_search_terms, search_filter, search
 )
+from sqlalchemy_utils.types import TSVectorType
+
 
 engine = create_engine(
     'postgres://postgres@localhost/sqlalchemy_searchable_test'
@@ -53,6 +55,8 @@ class TextItem(Base, Searchable):
 
     name = sa.Column(sa.Unicode(255))
 
+    search_vector = sa.Column(TSVectorType)
+
     content = sa.Column(sa.UnicodeText)
 
 
@@ -61,6 +65,7 @@ class Order(Base, Searchable):
     __tablename__ = 'order'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.Unicode(255))
+    search_vector = sa.Column(TSVectorType)
 
 
 class Article(TextItem):
@@ -162,7 +167,7 @@ class TestSearchFilter(TestCase):
         )
 
 
-class TestForeignCharacterSupport(TestCase):
+class TestSpecialCharacterSupport(TestCase):
     def setup_method(self, method):
         TestCase.setup_method(self, method)
         self.session.add(TextItem(name=u'index', content=u'ähtäri örrimörri'))
@@ -179,6 +184,16 @@ class TestForeignCharacterSupport(TestCase):
         query = TextItemQuery(TextItem, self.session)
         query = query.search(u'orrimorri', language='finnish')
         assert "to_tsquery('finnish', :term)" in str(query)
+
+    def test_single_quotes(self):
+        query = TextItemQuery(TextItem, self.session)
+        query = query.search(u"'orrimorri", language='finnish')
+        assert query.count() == 1
+
+    def test_double_quotes(self):
+        query = TextItemQuery(TextItem, self.session)
+        query = query.search(u'"orrimorri', language='finnish')
+        assert query.count() == 1
 
 
 class TestSearchableInheritance(TestCase):
@@ -202,6 +217,11 @@ class TestSafeSearchTerms(object):
     def test_uses_pgsql_wildcard_by_default(self):
         assert safe_search_terms('star wars') == [
             'star:*', 'wars:*'
+        ]
+
+    def test_escapes_special_chars(self):
+        assert safe_search_terms('star!#') == [
+            'star:*'
         ]
 
     def test_supports_custom_wildcards(self):

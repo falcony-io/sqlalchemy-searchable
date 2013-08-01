@@ -8,7 +8,7 @@ from sqlalchemy.orm.mapper import Mapper
 def safe_search_terms(query, wildcard=':*'):
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
-    query = re.sub(r'[():|&!*@#\s]+', ' ', query).strip()
+    query = re.sub(r'[\'():|&!*@#\s]+', ' ', query).strip()
     if not query:
         return []
 
@@ -146,25 +146,6 @@ class Searchable(object):
             return class_._inspect_searchable_tablename()
 
     @classmethod
-    def _search_vector_ddl(cls):
-        """
-        Returns the ddl for the search vector.
-        """
-        tablename = cls.__tablename__
-        search_vector_name = cls._get_search_option('search_vector_name')
-
-        return DDL(
-            """
-            ALTER TABLE {table}
-            ADD COLUMN {search_vector_name} tsvector
-            """
-            .format(
-                table=quote_identifier(tablename),
-                search_vector_name=search_vector_name
-            )
-        )
-
-    @classmethod
     def _search_index_ddl(cls):
         """
         Returns the ddl for creating the actual search index.
@@ -230,11 +211,6 @@ class Searchable(object):
         # We don't want sqlalchemy to know about this column so we add it
         # externally.
         table = cls.__table__
-        event.listen(
-            table,
-            'after_create',
-            cls._search_vector_ddl()
-        )
 
         # This indexes the tsvector column.
         event.listen(
