@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.2.1 (2013-08-01)
+^^^^^^^^^^^^^^^^^^
+
+- Made psycopg dependency more permissive
+
+
 0.2.0 (2013-08-01)
 ^^^^^^^^^^^^^^^^^^
 
