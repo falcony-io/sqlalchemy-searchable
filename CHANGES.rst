@@ -17,7 +17,7 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 - Search vectors must be added manually to each class
 
 
-0.1.7 (2013-07-30)
+0.1.8 (2013-07-30)
 ^^^^^^^^^^^^^^^^^^
 
 - Fixed safe_search_terms single quote handling

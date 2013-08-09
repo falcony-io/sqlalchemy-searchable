@@ -2,7 +2,7 @@ SQLAlchemy-Searchable
 =====================
 
 
-SQLAlchemy-Searchable provides FullText search capabilities for SQLAlchemy models. Currently only supports PostgreSQL.
+SQLAlchemy-Searchable provides FullText search capabilities for SQLAlchemy models. Currently it only supports PostgreSQL.
 
 
 QuickStart
@@ -10,6 +10,7 @@ QuickStart
 
 1. Make your SQLAlchemy declarative model inherit Searchable mixin.
 2. Define searchable columns and custom search configuration
+3. Define search_vector
 
 
 First let's define a simple Article model. This model has three fields: id, name and content.
@@ -20,6 +21,7 @@ We want the name and content to be fulltext indexed, hence we put them in specia
     from sqlalchemy.ext.declarative import declarative_base
 
     from sqlalchemy_searchable import Searchable
+    from sqlalchemy_utils.types import TSVectorType
 
 
     Base = declarative_base()
@@ -32,6 +34,7 @@ We want the name and content to be fulltext indexed, hence we put them in specia
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
         content = sa.Column(sa.UnicodeText)
+        search_vector = sa.Column(TSVectorType)
 
 
 Now lets create some dummy data.
@@ -106,6 +109,7 @@ Example ::
 
     from flask.ext.sqlalchemy import SQLAlchemy, BaseQuery
     from sqlalchemy_searchable import SearchQueryMixin
+    from sqlalchemy_utils.types import TSVectorType
 
 
     db = SQLAlchemy()
@@ -123,6 +127,7 @@ Example ::
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
         content = sa.Column(sa.UnicodeText)
+        search_vector = sa.Column(TSVectorType)
 
 
 Now this is where the fun begins! SearchQueryMixin provides search method for ArticleQuery. You can chain calls just like when using query filter calls.
