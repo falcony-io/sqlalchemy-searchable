@@ -99,6 +99,95 @@ In the following example we use Finnish catalog instead of the default English o
 * catalog - postgresql catalog to be used, default: pg_catalog.english
 
 
+Combined search vectors
+-----------------------
+
+Sometimes you may want to search from multiple tables at the same time. This can be achieved using
+combined search vectors.
+
+Consider the following model definition. Here each article has one author.
+
+::
+
+
+
+    import sqlalchemy as sa
+    from sqlalchemy.ext.declarative import declarative_base
+
+    from sqlalchemy_searchable import Searchable
+    from sqlalchemy_utils.types import TSVectorType
+
+
+    Base = declarative_base()
+
+
+    class Category(Base, Searchable):
+        __tablename__ = 'article'
+        __searchable_columns = ['name']
+
+        id = sa.Column(sa.Integer, primary_key=True)
+        name = sa.Column(sa.Unicode(255))
+        search_vector = sa.Column(TSVectorType)
+
+
+    class Article(Base, Searchable):
+        __tablename__ = 'article'
+        __searchable_columns = ['name', 'content']
+
+        id = sa.Column(sa.Integer, primary_key=True)
+        name = sa.Column(sa.Unicode(255))
+        content = sa.Column(sa.UnicodeText)
+        search_vector = sa.Column(TSVectorType)
+        category_id = sa.Column(
+            sa.Integer,
+            sa.ForeignKey(Category.id)
+        )
+        category = sa.orm.relationship(Category)
+
+
+Now consider a situation where we want to find all articles, where either article content or name or category name contains the word 'matrix'. This can be achieved as follows:
+
+::
+
+
+    from sqlalchemy_searchable import safe_search_terms
+    from sqlalchemy_utils import tsvector_match, tsvector_concat, to_tsquery
+
+
+    search_query = u'matrix'
+
+    combined_search_vector = tsvector_concat(
+        Article.search_vector,
+        Category.search_vector
+    )
+
+    articles = (
+        session.query(Article)
+        .join(Category)
+        .filter(
+            tsvector_match(
+                combined_search_vector,
+                to_tsquery(
+                    'simple',
+                    u' & '.join(safe_search_terms(search_query))
+                ),
+            )
+        )
+    )
+
+
+This query becomes a little more complex when using left joins. Then you have to take into account situations where Category.search_vector is None using coalesce function.
+
+::
+
+
+    combined_search_vector = tsvector_concat(
+        Article.search_vector,
+        sa.func.coalesce(Category.search_vector, u'')
+    )
+
+
+
 Flask-SQLAlchemy integration
 ----------------------------
 
