@@ -5,6 +5,9 @@ from sqlalchemy.schema import DDL
 from sqlalchemy.orm.mapper import Mapper
 
 
+__version__ = '0.2.1'
+
+
 def safe_search_terms(query, wildcard=':*'):
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
