@@ -29,7 +29,7 @@ We want the name and content to be fulltext indexed, hence we put them in specia
 
     class Article(Base, Searchable):
         __tablename__ = 'article'
-        __searchable_columns = ['name', 'content']
+        __searchable_columns__ = ['name', 'content']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
@@ -83,7 +83,7 @@ In the following example we use Finnish catalog instead of the default English o
 
     class Article(Base, Searchable):
         __tablename__ = 'article'
-        __searchable_columns = ['name', 'content']
+        __searchable_columns__ = ['name', 'content']
 
         __search_options__ = {
             'catalog': 'pg_catalog.finnish'
@@ -123,7 +123,7 @@ Consider the following model definition. Here each article has one author.
 
     class Category(Base, Searchable):
         __tablename__ = 'article'
-        __searchable_columns = ['name']
+        __searchable_columns__ = ['name']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
@@ -132,7 +132,7 @@ Consider the following model definition. Here each article has one author.
 
     class Article(Base, Searchable):
         __tablename__ = 'article'
-        __searchable_columns = ['name', 'content']
+        __searchable_columns__ = ['name', 'content']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
@@ -211,7 +211,7 @@ Example ::
     class Article(db.Model, Searchable):
         query_class = ArticleQuery
         __tablename__ = 'article'
-        __searchable_columns = ['name', 'content']
+        __searchable_columns__ = ['name', 'content']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
