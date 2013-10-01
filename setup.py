@@ -39,6 +39,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
+        'pyparsing>=2.0.1',
         'SQLAlchemy>=0.7.8',
         'psycopg2>=2.4.6',
         'SQLAlchemy-Utils>=0.16.2'
