@@ -119,6 +119,18 @@ Using parenthesis
 
 
 
+Internals
+---------
+
+If you wish to use only the query parser this can be achieved by invoking `safe_search_query` function. This function parses human readable search query into PostgreSQL specific format.
+
+::
+
+
+    safe_search_query('(star wars) or luke')
+    # (star:* & wars:*) | luke:*
+
+
 Search options
 ==============
 
