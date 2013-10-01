@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.3.0 (2013-10-01)
+^^^^^^^^^^^^^^^^^^
+
+- Added better search query parsing capabilities (support for nested parenthesis, or operator and negation operator)
+
+
 0.2.1 (2013-08-01)
 ^^^^^^^^^^^^^^^^^^
 
