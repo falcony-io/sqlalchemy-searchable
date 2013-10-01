@@ -70,8 +70,57 @@ After we've created the articles, we can search trhough them.
     >>> First article
 
 
+Search query operators
+======================
+
+As of version 0.3.0 SQLAlchemy-Searchable comes with built in search query parser. The search query parser is capable of parsing human readable search queries into PostgreSQL search query syntax.
+
+
+Basic operators
+---------------
+
+
+1. Search for articles containing 'star' and 'wars'
+
+The default operator is 'and', hence the following queries are essentially the same:
+
+::
+
+    query = search(query, 'star wars')
+    query2 = search(query, 'star and wars')
+    assert query == query2
+
+2. Searching for articles containing 'star' or 'wars'
+
+::
+
+
+    query = search(query, 'star or wars')
+
+
+3. Searching for article containing 'star' but not 'wars'
+
+::
+
+
+    query = search(query, 'star or -wars')
+
+
+
+Using parenthesis
+-----------------
+
+1. Searching for articles containing 'star' and 'wars' or 'luke'
+
+::
+
+
+    query = search(query '(star wars) or luke')
+
+
+
 Search options
---------------
+==============
 
 SQLAlchemy-Searchable provides number of customization options for the automatically generated
 search trigger, index and search_vector columns.
@@ -100,7 +149,7 @@ In the following example we use Finnish catalog instead of the default English o
 
 
 Combined search vectors
------------------------
+=======================
 
 Sometimes you may want to search from multiple tables at the same time. This can be achieved using
 combined search vectors.
@@ -150,7 +199,7 @@ Now consider a situation where we want to find all articles, where either articl
 ::
 
 
-    from sqlalchemy_searchable import safe_search_terms
+    from sqlalchemy_searchable import safe_search_query
     from sqlalchemy_utils import tsvector_match, tsvector_concat, to_tsquery
 
 
@@ -169,7 +218,7 @@ Now consider a situation where we want to find all articles, where either articl
                 combined_search_vector,
                 to_tsquery(
                     'simple',
-                    u' & '.join(safe_search_terms(search_query))
+                    safe_search_query(search_query))
                 ),
             )
         )
@@ -189,7 +238,7 @@ This query becomes a little more complex when using left joins. Then you have to
 
 
 Flask-SQLAlchemy integration
-----------------------------
+============================
 
 SQLAlchemy-Searchable can be neatly integrated into Flask-SQLAlchemy using SearchQueryMixin class.
 
