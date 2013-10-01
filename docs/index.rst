@@ -122,12 +122,12 @@ Using parenthesis
 Internals
 ---------
 
-If you wish to use only the query parser this can be achieved by invoking `safe_search_query` function. This function parses human readable search query into PostgreSQL specific format.
+If you wish to use only the query parser this can be achieved by invoking `parse_search_query` function. This function parses human readable search query into PostgreSQL specific format.
 
 ::
 
 
-    safe_search_query('(star wars) or luke')
+    parse_search_query('(star wars) or luke')
     # (star:* & wars:*) | luke:*
 
 
@@ -211,7 +211,7 @@ Now consider a situation where we want to find all articles, where either articl
 ::
 
 
-    from sqlalchemy_searchable import safe_search_query
+    from sqlalchemy_searchable import parse_search_query
     from sqlalchemy_utils import tsvector_match, tsvector_concat, to_tsquery
 
 
@@ -230,7 +230,7 @@ Now consider a situation where we want to find all articles, where either articl
                 combined_search_vector,
                 to_tsquery(
                     'simple',
-                    safe_search_query(search_query))
+                    parse_search_query(search_query))
                 ),
             )
         )
