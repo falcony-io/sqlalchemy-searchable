@@ -1,25 +1,30 @@
 import re
+from pyparsing import ParseException
 
 from sqlalchemy import event
 from sqlalchemy.schema import DDL
 from sqlalchemy.orm.mapper import Mapper
+from .parser import SearchQueryParser, unicode_non_letters
 
 
 __version__ = '0.2.1'
 
 
-def safe_search_terms(query, wildcard=':*'):
+parser = SearchQueryParser()
+
+
+def parse_search_query(query, parser=parser):
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
-    query = re.sub(r'[\'():|&!*@#\s]+', ' ', query).strip()
+    query = re.sub(r'[%s]+' % unicode_non_letters, ' ', query).strip()
+
     if not query:
-        return []
+        return u''
 
-    # Split the search query into terms.
-    terms = query.split(' ')
-
-    # Search for words starting with the given search terms.
-    return map(lambda a: a + wildcard, terms)
+    try:
+        return parser.parse(query)
+    except ParseException:
+        return u''
 
 
 class SearchQueryMixin(object):
@@ -37,15 +42,15 @@ class SearchQueryMixin(object):
         if not search_query:
             return self
 
-        terms = safe_search_terms(search_query)
-        if not terms:
+        query = parse_search_query(search_query)
+        if not query:
             return self
 
         return (
             self.filter(
                 self.search_filter(search_query, tablename, language)
             )
-            .params(term=u' & '.join(terms))
+            .params(term=query)
         )
 
 
@@ -85,8 +90,8 @@ def search(query, search_query, tablename=None, language=None):
     if not search_query:
         return query
 
-    terms = safe_search_terms(search_query)
-    if not terms:
+    search_query = parse_search_query(search_query)
+    if not search_query:
         return query
 
     if hasattr(query, 'search_filter'):
@@ -97,7 +102,7 @@ def search(query, search_query, tablename=None, language=None):
         query = query.filter(
             search_filter(query, search_query, tablename, language)
         )
-    return query.params(term=' & '.join(terms))
+    return query.params(term=search_query)
 
 
 def quote_identifier(identifier):

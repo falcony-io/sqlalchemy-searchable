@@ -1,0 +1,61 @@
+from pytest import raises
+from pyparsing import ParseException
+from sqlalchemy_searchable.parser import SearchQueryParser
+
+
+class TestSearchQueryParser(object):
+    def setup_method(self, method):
+        self.parser = SearchQueryParser()
+
+    def test_empty_string(self):
+        with raises(ParseException):
+            self.parser.parse('')
+
+    def test_or(self):
+        assert self.parser.parse('star or wars') == 'star:* | wars:*'
+
+    def test_multiple_ors(self):
+        assert self.parser.parse('star or or or wars') == 'star:* | wars:*'
+
+    def test_space_as_and(self):
+        assert self.parser.parse('star wars') == 'star:* & wars:*'
+
+    def test_multiple_spaces_as_and(self):
+        assert (
+            self.parser.parse('star   wars    luke') ==
+            'star:* & wars:* & luke:*'
+        )
+
+    def test_and(self):
+        assert self.parser.parse('star and wars') == 'star:* & wars:*'
+
+    def test_multiple_and(self):
+        assert self.parser.parse('star and and wars') == 'star:* & wars:*'
+
+    def test_parenthesis(self):
+        assert self.parser.parse('(star wars) or luke') == (
+            '(star:* & wars:*) | luke:*'
+        )
+
+    def test_or_and(self):
+        assert (
+            self.parser.parse('star or wars and luke or solo') ==
+            'star:* | wars:* & luke:* | solo:*'
+        )
+
+    def test_empty_parenthesis(self):
+        with raises(ParseException):
+            assert self.parser.parse('()')
+
+    def test_nested_parenthesis(self):
+        assert self.parser.parse('((star wars)) or luke') == (
+            '(star:* & wars:*) | luke:*'
+        )
+
+    def test_not(self):
+        assert self.parser.parse('-star') == (
+            '! star:*'
+        )
+
+    def test_not_with_parenthesis(self):
+        assert self.parser.parse('-(star wars)') == '! (star:* & wars:*)'
