@@ -24,7 +24,9 @@ unicode_letters = ''.join(
 )
 unicode_non_letters = ''.join(
     c for c in all_unicode
-    if unicodedata.category(c) != 'Lu' and unicodedata.category(c) != 'Ll'
+    if unicodedata.category(c) != 'Lu' and
+    unicodedata.category(c) != 'Ll' and
+    c not in ['-', '(', ')']
 )
 
 
