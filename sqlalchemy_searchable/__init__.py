@@ -61,13 +61,11 @@ def search_filter(query, term, tablename=None, language=None):
 
         try:
             tablename = entity.__search_options__['tablename']
-        except AttributeError:
-            tablename = entity._inspect_searchable_tablename()
-        except KeyError:
-            tablename = entity._inspect_searchable_tablename()
+        except (AttributeError, KeyError):
+            tablename = manager.inspect_searchable_tablename(entity)
 
     if not language:
-        language = mapper.class_._get_search_option('catalog').split('.')[-1]
+        language = manager.option(mapper.class_, 'catalog').split('.')[-1]
 
     if not language:
         return '%s.search_vector @@ to_tsquery(:term)' % (
@@ -112,35 +110,33 @@ def quote_identifier(identifier):
 
 
 def attach_search_indexes(mapper, class_):
-    if issubclass(class_, Searchable):
-        class_.define_search_vector()
+    if hasattr(class_, '__searchable_columns__'):
+        manager.define_search_vector(class_)
 
 
-# attach to all mappers
 event.listen(Mapper, 'instrument_class', attach_search_indexes)
 
 
-DEFAULT_SEARCH_OPTIONS = {
-    'tablename': None,
-    'search_vector_name': 'search_vector',
-    'search_trigger_name': '{table}_search_update',
-    'search_index_name': '{table}_search_index',
-    'catalog': 'pg_catalog.english'
-}
+class SearchManager():
+    default_options = {
+        'tablename': None,
+        'search_vector_name': 'search_vector',
+        'search_trigger_name': '{table}_search_update',
+        'search_index_name': '{table}_search_index',
+        'catalog': 'pg_catalog.english'
+    }
 
+    def __init__(self, options={}):
+        self.options = self.default_options
+        self.options.update(options)
 
-class Searchable(object):
-    __searchable_columns__ = []
-
-    @classmethod
-    def _get_search_option(cls, name):
+    def option(self, obj, name):
         try:
-            return cls.__search_options__[name]
+            return obj.__search_options__[name]
         except (AttributeError, KeyError):
-            return DEFAULT_SEARCH_OPTIONS[name]
+            return self.options[name]
 
-    @classmethod
-    def _inspect_searchable_tablename(cls):
+    def inspect_searchable_tablename(self, cls):
         """
         Recursive method that returns the name of the searchable table. This is
         method is needed for the inspection of tablenames in certain
@@ -153,14 +149,13 @@ class Searchable(object):
         for class_ in cls.__bases__:
             return class_._inspect_searchable_tablename()
 
-    @classmethod
-    def _search_index_ddl(cls):
+    def search_index_ddl(self, cls):
         """
         Returns the ddl for creating the actual search index.
         """
         tablename = cls.__tablename__
-        search_vector_name = cls._get_search_option('search_vector_name')
-        search_index_name = cls._get_search_option('search_index_name').format(
+        search_vector_name = self.option(cls, 'search_vector_name')
+        search_index_name = self.option(cls, 'search_index_name').format(
             table=tablename
         )
         return DDL(
@@ -175,14 +170,14 @@ class Searchable(object):
             )
         )
 
-    @classmethod
-    def _search_trigger_ddl(cls):
+    def search_trigger_ddl(self, cls):
         """
         Returns the ddl for creating an automatically updated search trigger.
         """
         tablename = cls.__tablename__
-        search_vector_name = cls._get_search_option('search_vector_name')
-        search_trigger_name = cls._get_search_option(
+        search_vector_name = self.option(cls, 'search_vector_name')
+        search_trigger_name = self.option(
+            cls,
             'search_trigger_name'
         ).format(table=tablename)
 
@@ -198,14 +193,13 @@ class Searchable(object):
                 table=quote_identifier(tablename),
                 arguments=', '.join([
                     search_vector_name,
-                    "'%s'" % cls._get_search_option('catalog')] +
+                    "'%s'" % self.option(cls, 'catalog')] +
                     cls.__searchable_columns__
                 )
             )
         )
 
-    @classmethod
-    def define_search_vector(cls):
+    def define_search_vector(self, cls):
         # In order to support joined table inheritance we need to ensure that
         # this class directly inherits Searchable.
         if Searchable not in cls.__bases__:
@@ -224,12 +218,19 @@ class Searchable(object):
         event.listen(
             table,
             'after_create',
-            cls._search_index_ddl()
+            self.search_index_ddl(cls)
         )
 
         # This sets up the trigger that keeps the tsvector column up to date.
         event.listen(
             table,
             'after_create',
-            cls._search_trigger_ddl()
+            self.search_trigger_ddl(cls)
         )
+
+
+manager = SearchManager()
+
+
+class Searchable(object):
+    __searchable_columns__ = {}
