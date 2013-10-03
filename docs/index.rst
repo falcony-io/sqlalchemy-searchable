@@ -95,7 +95,7 @@ The default operator is 'and', hence the following queries are essentially the s
 OR operator
 ^^^^^^^^^^^
 
-2. Searching for articles containing 'star' or 'wars'
+Searching for articles containing 'star' or 'wars'
 
 ::
 
