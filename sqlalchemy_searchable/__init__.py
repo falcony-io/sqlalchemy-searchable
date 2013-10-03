@@ -14,6 +14,10 @@ parser = SearchQueryParser()
 
 
 def parse_search_query(query, parser=parser):
+    query = query.strip()
+    # Convert hyphens between words to spaces but leave all hyphens which are
+    # at the beginning of the word (negation operator)
+    query = re.sub(r'(?!\s|^)-', ' ', query)
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
     query = re.sub(r'[%s]+' % unicode_non_letters, ' ', query).strip()

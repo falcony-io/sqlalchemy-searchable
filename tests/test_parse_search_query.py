@@ -2,7 +2,7 @@ from sqlalchemy_searchable import parse_search_query
 from sqlalchemy_searchable.parser import SearchQueryParser
 
 
-class TestSafeSearchTerms(object):
+class TestParseSearchQuery(object):
     def test_uses_pgsql_wildcard_by_default(self):
         assert parse_search_query('star wars') == 'star:* & wars:*'
 
@@ -27,6 +27,9 @@ class TestSafeSearchTerms(object):
 
     def test_empty_string(self):
         parse_search_query('') == ''
+
+    def test_hyphen_between_words(self):
+        assert parse_search_query('star-wars') == 'star:* & wars:*'
 
     def test_or(self):
         assert parse_search_query('star or wars') == 'star:* | wars:*'
