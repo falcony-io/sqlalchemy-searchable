@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.3.2 (2013-10-03)
+^^^^^^^^^^^^^^^^^^
+
+- Added support for hyphens between words
+
+
 0.3.1 (2013-10-02)
 ^^^^^^^^^^^^^^^^^^
 

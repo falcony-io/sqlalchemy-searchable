@@ -7,7 +7,7 @@ from sqlalchemy.orm.mapper import Mapper
 from .parser import SearchQueryParser, unicode_non_letters
 
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 
 parser = SearchQueryParser()

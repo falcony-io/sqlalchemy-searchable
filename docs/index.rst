@@ -79,8 +79,10 @@ As of version 0.3.0 SQLAlchemy-Searchable comes with built in search query parse
 Basic operators
 ---------------
 
+AND operator
+^^^^^^^^^^^^
 
-1. Search for articles containing 'star' and 'wars'
+Example: Search for articles containing 'star' and 'wars'
 
 The default operator is 'and', hence the following queries are essentially the same:
 
@@ -90,6 +92,9 @@ The default operator is 'and', hence the following queries are essentially the s
     query2 = search(query, 'star and wars')
     assert query == query2
 
+OR operator
+^^^^^^^^^^^
+
 2. Searching for articles containing 'star' or 'wars'
 
 ::
@@ -98,7 +103,12 @@ The default operator is 'and', hence the following queries are essentially the s
     query = search(query, 'star or wars')
 
 
-3. Searching for article containing 'star' but not 'wars'
+Negation operator
+^^^^^^^^^^^^^^^^^
+
+SQLAlchemy-Searchable search query parser supports negation operator. By default the negation operator is '-'.
+
+Example: Searching for article containing 'star' but not 'wars'
 
 ::
 
@@ -116,6 +126,20 @@ Using parenthesis
 
 
     query = search(query '(star wars) or luke')
+
+
+Hyphens between words
+---------------------
+
+SQLAlchemy-Searchable is smart enough to not convert hyphens between words to negation operators. Instead, it simply converts all hyphens between words to spaces.
+
+Hence the following search queries are essentially the same:
+
+::
+
+
+    query = search(query, 'star wars')
+    query2 = search(query, 'star-wars')
 
 
 
