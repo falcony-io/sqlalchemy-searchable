@@ -17,15 +17,18 @@ from pyparsing import (
 )
 
 
+def is_alphanumeric(c):
+    return unicodedata.category(c) in ['Lu', 'Ll', 'Nd']
+
+
 all_unicode = u''.join(unichr(c) for c in xrange(65536))
-unicode_letters = ''.join(
+unicode_alnum = ''.join(
     c for c in all_unicode
-    if unicodedata.category(c) == 'Lu' or unicodedata.category(c) == 'Ll'
+    if is_alphanumeric(c)
 )
-unicode_non_letters = ''.join(
+unicode_non_alnum = ''.join(
     c for c in all_unicode
-    if unicodedata.category(c) != 'Lu' and
-    unicodedata.category(c) != 'Ll' and
+    if not is_alphanumeric(c) and
     c not in ['-', '(', ')']
 )
 
@@ -57,7 +60,7 @@ class SearchQueryParser(object):
         """
         or_ = Forward()
 
-        word = Group(Word(unicode_letters)).setResultsName('word')
+        word = Group(Word(unicode_alnum)).setResultsName('word')
 
         parenthesis = Group(
             (Suppress('(') + or_ + Suppress(')'))

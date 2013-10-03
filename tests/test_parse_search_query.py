@@ -28,6 +28,12 @@ class TestParseSearchQuery(object):
     def test_empty_string(self):
         parse_search_query('') == ''
 
+    def test_numbers(self):
+        assert (
+            parse_search_query('12331 or 12a12') ==
+            '12331:* | 12a12:*'
+        )
+
     def test_hyphen_between_words(self):
         assert parse_search_query('star-wars') == 'star:* & wars:*'
 

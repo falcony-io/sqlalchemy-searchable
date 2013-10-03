@@ -4,10 +4,10 @@ from pyparsing import ParseException
 from sqlalchemy import event
 from sqlalchemy.schema import DDL
 from sqlalchemy.orm.mapper import Mapper
-from .parser import SearchQueryParser, unicode_non_letters
+from .parser import SearchQueryParser, unicode_non_alnum
 
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 
 parser = SearchQueryParser()
@@ -20,7 +20,7 @@ def parse_search_query(query, parser=parser):
     query = re.sub(r'(?!\s|^)-', ' ', query)
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
-    query = re.sub(r'[%s]+' % unicode_non_letters, ' ', query).strip()
+    query = re.sub(r'[%s]+' % unicode_non_alnum, ' ', query).strip()
 
     if not query:
         return u''

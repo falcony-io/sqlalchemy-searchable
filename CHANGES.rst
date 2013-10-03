@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.3.3 (2013-10-03)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed support for numbers in parse_search_query
+
+
 0.3.2 (2013-10-03)
 ^^^^^^^^^^^^^^^^^^
 
