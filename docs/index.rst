@@ -181,9 +181,28 @@ Search options
 SQLAlchemy-Searchable provides number of customization options for the automatically generated
 search trigger, index and search_vector columns.
 
+Global configuration options
+----------------------------
 
-Changing catalog
-----------------
+The following configuration options can be defined globally by passing them to make_searchable function.
+
+* search_vector_name - name of the search vector column, default: search_vector
+
+* search_trigger_name - name of the search database trigger, default: {table}_search_update
+
+* search_index_name - name of the search index, default: {table}_search_index
+
+* catalog - postgresql catalog to be used, default: pg_catalog.english
+
+
+Example ::
+
+
+    make_searchable(options={'catalog': 'pg_catalog.finnish'})
+
+
+Changing catalog for search vector
+----------------------------------
 
 
 In the following example we use Finnish catalog instead of the default English one.
@@ -196,15 +215,6 @@ In the following example we use Finnish catalog instead of the default English o
         name = sa.Column(sa.Unicode(255))
 
         search_vector = TSVectorType('name', catalog='pg_catalog.finnish')
-
-
-* search_vector_name - name of the search vector column, default: search_vector
-
-* search_trigger_name - name of the search database trigger, default: {table}_search_update
-
-* search_index_name - name of the search index, default: {table}_search_index
-
-* catalog - postgresql catalog to be used, default: pg_catalog.english
 
 
 Combined search vectors
