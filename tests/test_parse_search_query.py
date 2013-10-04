@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from sqlalchemy_searchable import parse_search_query
 from sqlalchemy_searchable.parser import SearchQueryParser
 
