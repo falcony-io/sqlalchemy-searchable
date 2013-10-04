@@ -67,12 +67,12 @@ class SearchQueryParser(object):
         ).setResultsName('parenthesis') | word
 
         not_ = Forward()
-        not_ << (Group(
+        not_ <<= (Group(
             Suppress(Literal('-')) + not_
         ).setResultsName('not') | parenthesis)
 
         and_ = Forward()
-        and_ << (
+        and_ <<= (
             Group(
                 not_ +
                 OneOrMore(Suppress(Keyword('and', caseless=True))) +
@@ -85,7 +85,7 @@ class SearchQueryParser(object):
             not_
         )
 
-        or_ << (
+        or_ <<= (
             Group(
                 and_ + OneOrMore(Suppress(Keyword('or', caseless=True))) + or_
             ).setResultsName('or') |
