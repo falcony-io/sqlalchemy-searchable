@@ -8,7 +8,7 @@ from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser, unicode_non_alnum
 
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 
 parser = SearchQueryParser()
@@ -18,7 +18,7 @@ def parse_search_query(query, parser=parser):
     query = query.strip()
     # Convert hyphens between words to spaces but leave all hyphens which are
     # at the beginning of the word (negation operator)
-    query = re.sub(r'(?!\s|^)-', ' ', query)
+    query = re.sub(r'(?i)(?<=[^\s|^])-(?=[^\s])', ' ', query)
     # Remove all illegal characters from the search query. Also remove multiple
     # spaces.
     query = re.sub(r'[%s]+' % unicode_non_alnum, ' ', query).strip()

@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.4.1 (2013-10-04)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed negation operator parsing
+
+
 0.4.0 (2013-10-04)
 ^^^^^^^^^^^^^^^^^^
 

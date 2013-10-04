@@ -83,6 +83,14 @@ class TestParseSearchQuery(object):
             '! star:*'
         )
 
+    def test_not_between_words(self):
+        assert parse_search_query('wars -star') == (
+            'wars:* & ! star:*'
+        )
+        assert parse_search_query(u'äää -ööö') == (
+            u'äää:* & ! ööö:*'
+        )
+
     def test_not_with_parenthesis(self):
         assert parse_search_query('-(star wars)') == '! (star:* & wars:*)'
 
