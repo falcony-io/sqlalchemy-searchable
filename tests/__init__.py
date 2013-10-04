@@ -5,9 +5,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
 from sqlalchemy.ext.declarative import declarative_base
-
-from sqlalchemy_searchable import Searchable, SearchQueryMixin
 from sqlalchemy_utils.types import TSVectorType
+from sqlalchemy_searchable import make_searchable, SearchQueryMixin
 
 
 engine = create_engine(
@@ -35,12 +34,14 @@ class TestCase(object):
         Base.metadata.drop_all(engine)
 
 
+make_searchable()
+
+
 class TextItemQuery(Query, SearchQueryMixin):
     pass
 
 
-class TextItem(Base, Searchable):
-    __searchable_columns__ = ['name', 'content']
+class TextItem(Base):
     __search_options__ = {
         'tablename': 'textitem',
         'search_vector_name': 'search_vector',
@@ -53,17 +54,16 @@ class TextItem(Base, Searchable):
 
     name = sa.Column(sa.Unicode(255))
 
-    search_vector = sa.Column(TSVectorType)
+    search_vector = sa.Column(TSVectorType('name', 'content'))
 
     content = sa.Column(sa.UnicodeText)
 
 
-class Order(Base, Searchable):
-    __searchable_columns__ = ['name']
+class Order(Base):
     __tablename__ = 'order'
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.Unicode(255))
-    search_vector = sa.Column(TSVectorType)
+    search_vector = sa.Column(TSVectorType('name'))
 
 
 class Article(TextItem):

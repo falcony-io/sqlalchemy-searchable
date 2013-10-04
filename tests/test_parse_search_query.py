@@ -84,3 +84,18 @@ class TestParseSearchQuery(object):
 
     def test_not_with_parenthesis(self):
         assert parse_search_query('-(star wars)') == '! (star:* & wars:*)'
+
+    def test_double_quotes(self):
+        assert parse_search_query('"star') == (
+            'star:*'
+        )
+
+    def test_search_supports_non_english_characters(self):
+        parse_search_query(u'ähtäri') == (
+            u'ähtäri:*'
+        )
+
+    def test_single_quotes(self):
+        assert parse_search_query("'star") == (
+            'star:*'
+        )
