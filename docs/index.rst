@@ -4,37 +4,35 @@ SQLAlchemy-Searchable
 
 SQLAlchemy-Searchable provides FullText search capabilities for SQLAlchemy models. Currently it only supports PostgreSQL.
 
-
 QuickStart
 ----------
 
-1. Make your SQLAlchemy declarative model inherit Searchable mixin.
-2. Define searchable columns and custom search configuration
-3. Define search_vector
+1. Import and call make_searchable function.
+1. Define TSVectorType columns to your SQLAlchemy declarative model.
 
 
 First let's define a simple Article model. This model has three fields: id, name and content.
-We want the name and content to be fulltext indexed, hence we put them in special __searchable_columns__ property.
+We want the name and content to be fulltext indexed, hence we put them inside the definition of TSVectorType.
 ::
 
     import sqlalchemy as sa
     from sqlalchemy.ext.declarative import declarative_base
-
-    from sqlalchemy_searchable import Searchable
+    from sqlalchemy_searchable import make_searchable
     from sqlalchemy_utils.types import TSVectorType
 
 
     Base = declarative_base()
 
+    make_searchable()
 
-    class Article(Base, Searchable):
+
+    class Article(Base):
         __tablename__ = 'article'
-        __searchable_columns__ = ['name', 'content']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
         content = sa.Column(sa.UnicodeText)
-        search_vector = sa.Column(TSVectorType)
+        search_vector = sa.Column(TSVectorType('name', 'content'))
 
 
 Now lets create some dummy data.
@@ -68,6 +66,28 @@ After we've created the articles, we can search trhough them.
 
     print query.first().name
     >>> First article
+
+
+Multiple search vectors per class
+=================================
+
+
+::
+
+
+    class Article(Base):
+        __tablename__ = 'article'
+
+        id = sa.Column(sa.Integer, primary_key=True)
+        name = sa.Column(sa.Unicode(255))
+        content = sa.Column(sa.UnicodeText)
+        description = sa.Column(sa.UnicodeText)
+        simple_search_vector = sa.Column(TSVectorType('name'))
+
+        fat_search_vector = sa.Column(
+            TSVectorType('name', 'content', 'desription')
+        )
+
 
 
 Search query operators
@@ -161,18 +181,21 @@ Search options
 SQLAlchemy-Searchable provides number of customization options for the automatically generated
 search trigger, index and search_vector columns.
 
-You can define the custom search options in your model by defining __search_options__ property.
+
+Changing catalog
+----------------
+
+
 In the following example we use Finnish catalog instead of the default English one.
 ::
 
 
-    class Article(Base, Searchable):
+    class Article(Base):
         __tablename__ = 'article'
-        __searchable_columns__ = ['name', 'content']
 
-        __search_options__ = {
-            'catalog': 'pg_catalog.finnish'
-        }
+        name = sa.Column(sa.Unicode(255))
+
+        search_vector = TSVectorType('name', catalog='pg_catalog.finnish')
 
 
 * search_vector_name - name of the search vector column, default: search_vector
@@ -199,30 +222,27 @@ Consider the following model definition. Here each article has one author.
     import sqlalchemy as sa
     from sqlalchemy.ext.declarative import declarative_base
 
-    from sqlalchemy_searchable import Searchable
     from sqlalchemy_utils.types import TSVectorType
 
 
     Base = declarative_base()
 
 
-    class Category(Base, Searchable):
+    class Category(Base):
         __tablename__ = 'article'
-        __searchable_columns__ = ['name']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
-        search_vector = sa.Column(TSVectorType)
+        search_vector = sa.Column(TSVectorType('name'))
 
 
-    class Article(Base, Searchable):
+    class Article(Base):
         __tablename__ = 'article'
-        __searchable_columns__ = ['name', 'content']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
         content = sa.Column(sa.UnicodeText)
-        search_vector = sa.Column(TSVectorType)
+        search_vector = sa.Column(TSVectorType('name', 'content'))
         category_id = sa.Column(
             sa.Integer,
             sa.ForeignKey(Category.id)
@@ -293,15 +313,14 @@ Example ::
         pass
 
 
-    class Article(db.Model, Searchable):
+    class Article(db.Model):
         query_class = ArticleQuery
         __tablename__ = 'article'
-        __searchable_columns__ = ['name', 'content']
 
         id = sa.Column(sa.Integer, primary_key=True)
         name = sa.Column(sa.Unicode(255))
         content = sa.Column(sa.UnicodeText)
-        search_vector = sa.Column(TSVectorType)
+        search_vector = sa.Column(TSVectorType('name', 'content'))
 
 
 Now this is where the fun begins! SearchQueryMixin provides search method for ArticleQuery. You can chain calls just like when using query filter calls.

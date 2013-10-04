@@ -4,6 +4,14 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.4.0 (2013-10-04)
+^^^^^^^^^^^^^^^^^^
+
+- Completely rewritten search API
+- Renamed SearchQueryMixin.search and main module search function's 'language' parameter to 'catalog'
+- Support for multiple search vectors per class
+
+
 0.3.3 (2013-10-03)
 ^^^^^^^^^^^^^^^^^^
 
