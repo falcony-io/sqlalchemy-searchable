@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.4.2 (2013-10-07)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed single table inheritance handling in define_triggers_and_indexes manager method.
+
+
 0.4.1 (2013-10-04)
 ^^^^^^^^^^^^^^^^^^
 
