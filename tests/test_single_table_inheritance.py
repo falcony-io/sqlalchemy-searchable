@@ -1,9 +1,9 @@
 import sqlalchemy as sa
 from sqlalchemy_utils import TSVectorType
-from tests import TestCase
+from tests import SchemaTestCase
 
 
-class TestSearchableWithSingleTableInheritance(TestCase):
+class TestSearchableWithSingleTableInheritance(SchemaTestCase):
     def create_models(self):
         class TextItem(self.Base):
             __tablename__ = 'textitem'
@@ -18,35 +18,3 @@ class TestSearchableWithSingleTableInheritance(TestCase):
 
         class Article(TextItem):
             created_at = sa.Column(sa.DateTime)
-
-    def test_creates_search_index(self):
-        rows = self.session.execute(
-            """SELECT relname
-            FROM pg_class
-            WHERE oid IN (
-                SELECT indexrelid
-                FROM pg_index, pg_class
-                WHERE pg_class.relname='textitem'
-                    AND pg_class.oid=pg_index.indrelid
-                    AND indisunique != 't'
-                    AND indisprimary != 't'
-            )"""
-        ).fetchall()
-        assert 'textitem_search_index' in map(lambda a: a[0], rows)
-
-    def test_creates_search_trigger(self):
-        rows = self.session.execute(
-            """SELECT DISTINCT trigger_name
-            FROM information_schema.triggers
-            WHERE event_object_table = 'textitem'
-            AND trigger_schema NOT IN
-            ('pg_catalog', 'information_schema')"""
-        ).fetchall()
-        assert 'textitem_search_update' in map(lambda a: a[0], rows)
-
-    def test_creates_search_vector_column(self):
-        rows = self.session.execute(
-            """SELECT column_name
-            FROM information_schema.columns WHERE table_name = 'textitem'"""
-        ).fetchall()
-        assert 'search_vector' in map(lambda a: a[0], rows)

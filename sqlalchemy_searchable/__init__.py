@@ -85,9 +85,8 @@ def quote_identifier(identifier):
 class SearchManager():
     default_options = {
         'tablename': None,
-        'search_vector_name': 'search_vector',
-        'search_trigger_name': '{table}_search_update',
-        'search_index_name': '{table}_search_index',
+        'search_trigger_name': '{table}_{column}_trigger',
+        'search_index_name': '{table}_{column}_index',
         'catalog': 'pg_catalog.english'
     }
 
@@ -109,9 +108,9 @@ class SearchManager():
         :param column: TSVectorType typed SQLAlchemy column object
         """
         tablename = column.table.name
-        search_vector_name = self.option(column, 'search_vector_name')
         search_index_name = self.option(column, 'search_index_name').format(
-            table=tablename
+            table=tablename,
+            column=column.name
         )
         return DDL(
             """
@@ -121,7 +120,7 @@ class SearchManager():
             .format(
                 table=quote_identifier(tablename),
                 search_index_name=search_index_name,
-                search_vector_name=search_vector_name
+                search_vector_name=column.name
             )
         )
 
@@ -132,11 +131,10 @@ class SearchManager():
         :param column: TSVectorType typed SQLAlchemy column object
         """
         tablename = column.table.name
-        search_vector_name = self.option(column, 'search_vector_name')
         search_trigger_name = self.option(
             column,
             'search_trigger_name'
-        ).format(table=tablename)
+        ).format(table=tablename, column=column.name)
 
         return DDL(
             """
@@ -149,7 +147,7 @@ class SearchManager():
                 search_trigger_name=search_trigger_name,
                 table=quote_identifier(tablename),
                 arguments=', '.join([
-                    search_vector_name,
+                    column.name,
                     "'%s'" % self.option(column, 'catalog')] +
                     list(column.type.columns)
                 )
@@ -176,7 +174,6 @@ class SearchManager():
 
             column_name = '%s_%s' % (table.name, column.name)
 
-            print column_name
             if column_name in self.processed_columns:
                 continue
 

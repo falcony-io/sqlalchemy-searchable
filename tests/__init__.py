@@ -64,3 +64,35 @@ class TestCase(object):
         self.TextItem = TextItem
         self.Order = Order
         self.Article = Article
+
+
+class SchemaTestCase(TestCase):
+    should_create_indexes = []
+    should_create_triggers = []
+
+    def test_creates_search_index(self):
+        rows = self.session.execute(
+            """SELECT relname
+            FROM pg_class
+            WHERE oid IN (
+                SELECT indexrelid
+                FROM pg_index, pg_class
+                WHERE pg_class.relname='textitem'
+                    AND pg_class.oid=pg_index.indrelid
+                    AND indisunique != 't'
+                    AND indisprimary != 't'
+            )"""
+        ).fetchall()
+        for index_name in self.should_create_indexes:
+            assert index_name in map(lambda a: a[0], rows)
+
+    def test_creates_search_trigger(self):
+        rows = self.session.execute(
+            """SELECT DISTINCT trigger_name
+            FROM information_schema.triggers
+            WHERE event_object_table = 'textitem'
+            AND trigger_schema NOT IN
+            ('pg_catalog', 'information_schema')"""
+        ).fetchall()
+        for trigger_name in self.should_create_triggers:
+            assert trigger_name in map(lambda a: a[0], rows)
