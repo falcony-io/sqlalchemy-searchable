@@ -8,66 +8,55 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils.types import TSVectorType
 from sqlalchemy_searchable import make_searchable, SearchQueryMixin
 
-
-engine = create_engine(
-    'postgres://postgres@localhost/sqlalchemy_searchable_test'
-)
-Base = declarative_base()
+make_searchable()
 
 
 class TestCase(object):
     def setup_method(self, method):
-        Base.metadata.create_all(engine)
+        self.engine = create_engine(
+            'postgres://postgres@localhost/sqlalchemy_searchable_test'
+        )
+        self.Base = declarative_base()
+        self.create_models()
+        self.Base.metadata.create_all(self.engine)
 
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=self.engine)
         self.session = Session()
-
-        TextItem.__search_options__ = {
-            'tablename': 'textitem',
-            'search_vector_name': 'search_vector',
-            'search_trigger_name': '{table}_search_update',
-            'search_index_name': '{table}_search_index',
-        }
 
     def teardown_method(self, method):
         self.session.close_all()
-        Base.metadata.drop_all(engine)
+        self.Base.metadata.drop_all(self.engine)
 
+    def create_models(self):
+        class TextItemQuery(Query, SearchQueryMixin):
+            pass
 
-make_searchable()
+        class TextItem(self.Base):
+            __tablename__ = 'textitem'
 
+            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
-class TextItemQuery(Query, SearchQueryMixin):
-    pass
+            name = sa.Column(sa.Unicode(255))
 
+            search_vector = sa.Column(TSVectorType('name', 'content'))
 
-class TextItem(Base):
-    __search_options__ = {
-        'tablename': 'textitem',
-        'search_vector_name': 'search_vector',
-        'search_trigger_name': '{table}_search_update',
-        'search_index_name': '{table}_search_index',
-    }
-    __tablename__ = 'textitem'
+            content = sa.Column(sa.UnicodeText)
 
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+        class Order(self.Base):
+            __tablename__ = 'order'
+            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+            name = sa.Column(sa.Unicode(255))
+            search_vector = sa.Column(TSVectorType('name'))
 
-    name = sa.Column(sa.Unicode(255))
+        class Article(TextItem):
+            __tablename__ = 'article'
+            id = sa.Column(
+                sa.Integer, sa.ForeignKey(TextItem.id), primary_key=True
+            )
 
-    search_vector = sa.Column(TSVectorType('name', 'content'))
+            created_at = sa.Column(sa.DateTime)
 
-    content = sa.Column(sa.UnicodeText)
-
-
-class Order(Base):
-    __tablename__ = 'order'
-    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    name = sa.Column(sa.Unicode(255))
-    search_vector = sa.Column(TSVectorType('name'))
-
-
-class Article(TextItem):
-    __tablename__ = 'article'
-    id = sa.Column(sa.Integer, sa.ForeignKey(TextItem.id), primary_key=True)
-
-    created_at = sa.Column(sa.DateTime)
+        self.TextItemQuery = TextItemQuery
+        self.TextItem = TextItem
+        self.Order = Order
+        self.Article = Article
