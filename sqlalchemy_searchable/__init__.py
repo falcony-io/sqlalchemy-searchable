@@ -186,11 +186,12 @@ class SearchManager():
 
             # This sets up the trigger that keeps the tsvector column up to
             # date.
-            event.listen(
-                table,
-                'after_create',
-                self.search_trigger_ddl(column)
-            )
+            if column.type.columns:
+                event.listen(
+                    table,
+                    'after_create',
+                    self.search_trigger_ddl(column)
+                )
 
             self.processed_columns.append(column_name)
 

@@ -83,8 +83,7 @@ class SchemaTestCase(TestCase):
                     AND indisprimary != 't'
             )"""
         ).fetchall()
-        for index_name in self.should_create_indexes:
-            assert index_name in map(lambda a: a[0], rows)
+        assert self.should_create_indexes == map(lambda a: a[0], rows)
 
     def test_creates_search_trigger(self):
         rows = self.session.execute(
@@ -94,5 +93,4 @@ class SchemaTestCase(TestCase):
             AND trigger_schema NOT IN
             ('pg_catalog', 'information_schema')"""
         ).fetchall()
-        for trigger_name in self.should_create_triggers:
-            assert trigger_name in map(lambda a: a[0], rows)
+        assert self.should_create_triggers == map(lambda a: a[0], rows)
