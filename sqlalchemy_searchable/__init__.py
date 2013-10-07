@@ -8,7 +8,7 @@ from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser, unicode_non_alnum
 
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 
 
 parser = SearchQueryParser()

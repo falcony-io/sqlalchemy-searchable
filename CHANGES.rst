@@ -4,6 +4,13 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.4.3 (2013-10-07)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed index/trigger creation when multiple vectors attached to single class
+- Search vector without columns do not generate triggers anymore
+
+
 0.4.2 (2013-10-07)
 ^^^^^^^^^^^^^^^^^^
 
