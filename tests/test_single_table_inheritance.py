@@ -4,6 +4,13 @@ from tests import SchemaTestCase
 
 
 class TestSearchableWithSingleTableInheritance(SchemaTestCase):
+    should_create_indexes = [
+        u'textitem_search_vector_index',
+    ]
+    should_create_triggers = [
+        u'textitem_search_vector_trigger',
+    ]
+
     def create_models(self):
         class TextItem(self.Base):
             __tablename__ = 'textitem'
