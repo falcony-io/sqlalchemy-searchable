@@ -94,6 +94,7 @@ class SearchManager():
     def __init__(self, options={}):
         self.options = self.default_options
         self.options.update(options)
+        self.processed_columns = []
 
     def option(self, column, name):
         try:
@@ -173,6 +174,12 @@ class SearchManager():
             # externally.
             table = cls.__table__
 
+            column_name = '%s_%s' % (table.name, column.name)
+
+            print column_name
+            if column_name in self.processed_columns:
+                continue
+
             # This indexes the tsvector column.
             event.listen(
                 table,
@@ -187,6 +194,8 @@ class SearchManager():
                 'after_create',
                 self.search_trigger_ddl(column)
             )
+
+            self.processed_columns.append(column_name)
 
 
 search_manager = SearchManager()

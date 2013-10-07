@@ -6,7 +6,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils.types import TSVectorType
-from sqlalchemy_searchable import make_searchable, SearchQueryMixin
+from sqlalchemy_searchable import (
+    make_searchable, SearchQueryMixin, search_manager
+)
+
 
 make_searchable()
 
@@ -26,6 +29,7 @@ class TestCase(object):
     def teardown_method(self, method):
         self.session.close_all()
         self.Base.metadata.drop_all(self.engine)
+        search_manager.processed_columns = []
 
     def create_models(self):
         class TextItemQuery(Query, SearchQueryMixin):
