@@ -5,12 +5,12 @@ from tests import SchemaTestCase
 
 class TestMultipleSearchVectorsPerClass(SchemaTestCase):
     should_create_indexes = [
+        u'textitem_content_vector_index',
         u'textitem_name_vector_index',
-        u'textitem_content_vector_index'
     ]
     should_create_triggers = [
+        u'textitem_content_vector_trigger',
         u'textitem_name_vector_trigger',
-        u'textitem_content_vector_trigger'
     ]
 
     def create_models(self):
