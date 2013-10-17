@@ -170,7 +170,7 @@ Hence the following search queries are essentially the same:
 Emails as search terms
 ^^^^^^^^^^^^^^^^^^^^^^
 
-PostgreSQL tsvectors handle recognize email strings in a way that they don't get split into multiple tsvector terms. SQLAlchemy-Searchable handles email search terms the same way:
+PostgreSQL tsvectors handle email strings in a way that they don't get split into multiple tsvector terms. SQLAlchemy-Searchable handles email search terms the same way:
 
 ::
 
