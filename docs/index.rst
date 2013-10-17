@@ -148,8 +148,13 @@ Using parenthesis
     query = search(query '(star wars) or luke')
 
 
+
+Special cases
+-------------
+
+
 Hyphens between words
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 SQLAlchemy-Searchable is smart enough to not convert hyphens between words to negation operators. Instead, it simply converts all hyphens between words to spaces.
 
@@ -161,6 +166,20 @@ Hence the following search queries are essentially the same:
     query = search(query, 'star wars')
     query2 = search(query, 'star-wars')
 
+
+Emails as search terms
+^^^^^^^^^^^^^^^^^^^^^^
+
+PostgreSQL tsvectors handle recognize email strings in a way that they don't get split into multiple tsvector terms. SQLAlchemy-Searchable handles email search terms the same way:
+
+::
+
+    # single search term used: 'john@fastmonkeys.com'
+    query = search(query, u'john@fastmonkeys.com')
+
+    # not a valid email, split into three search terms:
+    # 'john', 'fastmonkeys' and 'com'
+    query = search(query, u'john@@fastmonkeys.com)
 
 
 Internals
