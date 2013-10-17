@@ -8,7 +8,8 @@ QuickStart
 ----------
 
 1. Import and call make_searchable function.
-1. Define TSVectorType columns to your SQLAlchemy declarative model.
+
+2. Define TSVectorType columns to your SQLAlchemy declarative model.
 
 
 First let's define a simple Article model. This model has three fields: id, name and content.
