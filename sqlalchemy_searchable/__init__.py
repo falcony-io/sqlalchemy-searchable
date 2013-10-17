@@ -10,7 +10,7 @@ from validators import is_email
 from .parser import SearchQueryParser, unicode_non_alnum
 
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 
 
 parser = SearchQueryParser()

@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.4.4 (2013-10-17)
+^^^^^^^^^^^^^^^^^^
+
+- Search query string parser now notices emails and leaves them as they are (same behavious as in PostgreSQL tsvector parser)
+
+
 0.4.3 (2013-10-07)
 ^^^^^^^^^^^^^^^^^^
 
