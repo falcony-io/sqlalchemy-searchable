@@ -42,7 +42,8 @@ setup(
         'pyparsing>=2.0.1',
         'SQLAlchemy>=0.7.8',
         'psycopg2>=2.4.6',
-        'SQLAlchemy-Utils>=0.16.24'
+        'SQLAlchemy-Utils>=0.16.24',
+        'validators>=0.1.0'
     ],
     cmdclass={'test': PyTest},
     classifiers=[
