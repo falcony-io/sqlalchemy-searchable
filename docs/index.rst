@@ -2,7 +2,7 @@ SQLAlchemy-Searchable
 =====================
 
 
-SQLAlchemy-Searchable provides FullText search capabilities for SQLAlchemy models. Currently it only supports PostgreSQL.
+SQLAlchemy-Searchable provides `full text search`_ capabilities for SQLAlchemy_ models. Currently it only supports PostgreSQL_.
 
 QuickStart
 ----------
@@ -360,7 +360,8 @@ Here we search for first 5 articles that contain the word 'Finland'.
 
 
 
-
-
+.. _`full text search`: http://en.wikipedia.org/wiki/Full_text_search
+.. _SQLAlchemy: http://http://www.sqlalchemy.org/
+.. _PostgreSQL: http://www.postgresql.org/
 
 
