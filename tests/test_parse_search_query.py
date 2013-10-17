@@ -35,6 +35,12 @@ class TestParseSearchQuery(object):
             '12331:* | 12a12:*'
         )
 
+    def test_emails(self):
+        assert (
+            parse_search_query('john@fastmonkeys.com') ==
+            'john@fastmonkeys.com:*'
+        )
+
     def test_hyphen_between_words(self):
         assert parse_search_query('star-wars') == 'star:* & wars:*'
 

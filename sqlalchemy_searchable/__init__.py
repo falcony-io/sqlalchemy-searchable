@@ -1,10 +1,12 @@
 import re
+import string
 from pyparsing import ParseException
 
 import sqlalchemy as sa
 from sqlalchemy import event
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
+from validators import is_email
 from .parser import SearchQueryParser, unicode_non_alnum
 
 
@@ -14,14 +16,30 @@ __version__ = '0.4.3'
 parser = SearchQueryParser()
 
 
+def filter_term(term):
+    """
+    Removes all illegal characters from the search term but only if given
+    search term is not an email. PostgreSQL search vector parser notices email
+    addresses hence we need special parsing for them here also.
+
+    :param term: search term to filter
+    """
+    if is_email(term):
+        return term
+    else:
+        return re.sub(r'[%s]+' % unicode_non_alnum, ' ', term)
+
+
 def parse_search_query(query, parser=parser):
     query = query.strip()
     # Convert hyphens between words to spaces but leave all hyphens which are
     # at the beginning of the word (negation operator)
     query = re.sub(r'(?i)(?<=[^\s|^])-(?=[^\s])', ' ', query)
-    # Remove all illegal characters from the search query. Also remove multiple
-    # spaces.
-    query = re.sub(r'[%s]+' % unicode_non_alnum, ' ', query).strip()
+
+    parts = query.split()
+    parts = filter(lambda a: a, parts)
+    parts = map(string.strip, map(filter_term, parts))
+    query = ' '.join(parts)
 
     if not query:
         return u''

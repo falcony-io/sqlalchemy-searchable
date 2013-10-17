@@ -60,7 +60,7 @@ class SearchQueryParser(object):
         """
         or_ = Forward()
 
-        word = Group(Word(unicode_alnum)).setResultsName('word')
+        word = Group(Word(unicode_alnum + '@.')).setResultsName('word')
 
         parenthesis = Group(
             (Suppress('(') + or_ + Suppress(')'))
