@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from sqlalchemy import event
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
-from validators import is_email
+from validators import email
 from .parser import SearchQueryParser, unicode_non_alnum
 
 
@@ -24,7 +24,7 @@ def filter_term(term):
 
     :param term: search term to filter
     """
-    if is_email(term):
+    if email(term):
         return term
     else:
         return re.sub(r'[%s]+' % unicode_non_alnum, ' ', term)
