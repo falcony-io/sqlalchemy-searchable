@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.4.5 (2013-10-22)
+^^^^^^^^^^^^^^^^^^
+
+- Updated validators dependency to 0.2.0
+
+
 0.4.4 (2013-10-17)
 ^^^^^^^^^^^^^^^^^^
 
