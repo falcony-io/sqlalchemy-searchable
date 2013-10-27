@@ -21,7 +21,7 @@ def is_alphanumeric(c):
     return unicodedata.category(c) in ['Lu', 'Ll', 'Nd']
 
 
-all_unicode = u''.join(unichr(c) for c in six.moves.range(65536))
+all_unicode = u''.join(six.unichr(c) for c in six.moves.range(65536))
 unicode_alnum = ''.join(
     c for c in all_unicode
     if is_alphanumeric(c)
