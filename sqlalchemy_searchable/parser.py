@@ -4,7 +4,7 @@ Search query parser
 Influenced by http://pyparsing.wikispaces.com/file/view/searchparser.py
 """
 import unicodedata
-
+import six
 from pyparsing import (
     Forward,
     Group,
@@ -21,7 +21,7 @@ def is_alphanumeric(c):
     return unicodedata.category(c) in ['Lu', 'Ll', 'Nd']
 
 
-all_unicode = u''.join(unichr(c) for c in xrange(65536))
+all_unicode = u''.join(unichr(c) for c in six.moves.range(65536))
 unicode_alnum = ''.join(
     c for c in all_unicode
     if is_alphanumeric(c)
