@@ -1,4 +1,0 @@
-psycopg2>=2.4.6
-SQLAlchemy>=0.7.8
-SQLAlchemy-Utils>=0.16.2
-pyparsing>=2.0.1
