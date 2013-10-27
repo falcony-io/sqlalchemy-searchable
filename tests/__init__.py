@@ -94,5 +94,4 @@ class SchemaTestCase(TestCase):
                 ('pg_catalog', 'information_schema')
             ORDER BY trigger_name"""
         ).fetchall()
-        print rows
         assert self.should_create_triggers == map(lambda a: a[0], rows)
