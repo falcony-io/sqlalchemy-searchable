@@ -22,6 +22,13 @@ class PyTest(Command):
         errno = subprocess.call(['py.test'])
         raise SystemExit(errno)
 
+
+extras_require = {
+    'test': [
+        'pytest>=2.2.3',
+    ],
+}
+
 setup(
     name='SQLAlchemy-Searchable',
     version='0.4.5',
@@ -45,6 +52,7 @@ setup(
         'SQLAlchemy-Utils>=0.16.24',
         'validators>=0.3.0',
     ],
+    extras_require=extras_require,
     cmdclass={'test': PyTest},
     classifiers=[
         'Environment :: Web Environment',
