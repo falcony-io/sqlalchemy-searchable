@@ -4,6 +4,18 @@ SQLAlchemy-Searchable
 
 SQLAlchemy-Searchable provides `full text search`_ capabilities for SQLAlchemy_ models. Currently it only supports PostgreSQL_.
 
+
+Installation
+------------
+
+::
+
+    pip install SQLAlchemy-Searchable
+
+
+Supported versions are python 2.6, 2.7 and 3.3.
+
+
 QuickStart
 ----------
 
