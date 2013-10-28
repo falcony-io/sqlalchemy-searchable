@@ -1,5 +1,4 @@
 import re
-import string
 from pyparsing import ParseException
 
 import sqlalchemy as sa
@@ -38,7 +37,7 @@ def parse_search_query(query, parser=parser):
 
     parts = query.split()
     parts = filter(lambda a: a, parts)
-    parts = map(string.strip, map(filter_term, parts))
+    parts = map(lambda s: s.strip(), map(filter_term, parts))
     query = ' '.join(parts)
 
     if not query:
