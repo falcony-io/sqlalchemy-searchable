@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.5.0 (not released yet)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Python 3 support
+
+
 0.4.5 (2013-10-22)
 ^^^^^^^^^^^^^^^^^^
 
