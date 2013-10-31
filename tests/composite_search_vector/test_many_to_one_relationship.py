@@ -4,7 +4,7 @@ from sqlalchemy_searchable import CompositeTSVectorType
 from tests import TestCase
 
 
-class TestCompositeSearchVector(TestCase):
+class TestCompositeVectorWithManyToOneRelationship(TestCase):
     should_create_indexes = [
         u'textitem_search_vector_index',
     ]

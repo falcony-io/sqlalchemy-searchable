@@ -9,6 +9,7 @@ from sqlalchemy_utils.types import TSVectorType
 from sqlalchemy_searchable import (
     make_searchable, SearchQueryMixin, search_manager
 )
+from sqlalchemy_searchable.types import configurator
 
 
 make_searchable()
@@ -27,9 +28,14 @@ class TestCase(object):
         self.session = Session()
 
     def teardown_method(self, method):
-        self.session.close_all()
-        self.Base.metadata.drop_all(self.engine)
         search_manager.processed_columns = []
+        configurator.configurables = []
+
+        self.session.expunge_all()
+        self.session.close_all()
+        #self.session.remove()
+        self.Base.metadata.drop_all(self.engine)
+        self.engine.dispose()
 
     def create_models(self):
         class TextItemQuery(Query, SearchQueryMixin):

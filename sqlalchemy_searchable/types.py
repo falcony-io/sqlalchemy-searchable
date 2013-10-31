@@ -65,12 +65,6 @@ def parse_path(mapper, path):
         return relationship, parse_path(relationship.mapper, parts[1])
 
 
-def configure_composite_search_vectors(mapper, class_):
-    for column in class_.__table__.c:
-        if isinstance(column.type, CompositeTSVectorType):
-            register_listener(class_, column)
-
-
 def register_listener(class_, column):
     attr_paths = column.type.attr_paths
     mapper = class_.__mapper__
@@ -78,7 +72,7 @@ def register_listener(class_, column):
 
     def update_composite_search_vectors(session, flush_context):
         id_dict = defaultdict(list)
-        joins = []
+        joins = {}
         vectors = []
         ids = []
 
@@ -86,10 +80,18 @@ def register_listener(class_, column):
             for path in paths:
                 if isinstance(path, tuple):
                     if obj.__mapper__ == path[0].mapper:
-                        id_dict[path[0]].append(obj.id)
+                        if path[0].direction.name == 'MANYTOONE':
+                            id_dict[path[0]].append(obj.id)
+                        elif path[0].direction.name == 'ONETOMANY':
+                            ids.append(
+                                getattr(
+                                    obj,
+                                    path[0].local_remote_pairs[0][1].key
+                                )
+                            )
 
-                        if path[0] not in joins:
-                            joins.append(getattr(class_, path[0].key))
+                        if path[0].key not in joins:
+                            joins[path[0].key] = getattr(class_, path[0].key)
                             vectors.append(path[1])
                 else:
                     if isinstance(obj, class_):
@@ -103,48 +105,45 @@ def register_listener(class_, column):
                 conditions.append(
                     getattr(
                         class_,
-                        relation.local_remote_pairs[0][0].name
+                        relation.local_remote_pairs[0][0].key
                     ).in_(ids)
                 )
-            else:
-                assert 0
 
-        print map(str, conditions)
+        if ids or joins:
+            alias = sa.orm.aliased(class_.__table__)
 
-        alias = sa.orm.aliased(class_.__table__)
-
-        query = session.query(
-            alias.c.id,
-            tsvector_concat(
-                alias.c.search_vector,
-                *map(vector_agg, vectors)
-            ).label('combined_search_vector')
-        )
-        for join in joins:
-            query = query.join(join)
-
-        combined_search_vectors = (
-            query
-            .group_by(alias.c.id)
-            .filter(sa.or_(class_.__table__.c.id == alias.c.id))
-        ).correlate(class_.__table__)
-
-        select = sa.select(
-            [sa.literal_column('combined_search_vector')],
-            from_obj=sa.alias(
-                combined_search_vectors.statement,
-                'combined_search_vectors'
+            query = session.query(
+                alias.c.id,
+                tsvector_concat(
+                    alias.c.search_vector,
+                    *map(vector_agg, vectors)
+                ).label('combined_search_vector')
             )
-        )
+            for join in joins.values():
+                query = query.join(join)
 
-        (
-            session.query(class_)
-            .filter(sa.or_(*conditions))
-            .update(
-                values={column.name: select},
-                synchronize_session='fetch'
+            combined_search_vectors = (
+                query
+                .group_by(alias.c.id)
+                .filter(sa.or_(class_.__table__.c.id == alias.c.id))
+            ).correlate(class_.__table__)
+
+            select = sa.select(
+                [sa.literal_column('combined_search_vector')],
+                from_obj=sa.alias(
+                    combined_search_vectors.statement,
+                    'combined_search_vectors'
+                )
             )
-        )
+
+            (
+                session.query(class_)
+                .filter(sa.or_(*conditions))
+                .update(
+                    values={column.name: select},
+                    synchronize_session='fetch'
+                )
+            )
 
     sa.event.listen(
         sa.orm.session.Session,
@@ -153,8 +152,35 @@ def register_listener(class_, column):
     )
 
 
-sa.event.listen(
-    sa.orm.mapper,
-    'mapper_configured',
-    configure_composite_search_vectors
-)
+class Configurator(object):
+    """
+    Configures all composite search vector columns using SQLAlchemy event
+    listeners.
+    """
+    configurables = []
+
+    def append_configurable(self, mapper, class_):
+        for column in class_.__table__.c:
+            if isinstance(column.type, CompositeTSVectorType):
+                self.configurables.append((class_, column))
+
+    def configure_vectors(self):
+        for class_, column in self.configurables:
+            register_listener(class_, column)
+
+    def register_listeners(self):
+        sa.event.listen(
+            sa.orm.mapper,
+            'mapper_configured',
+            self.append_configurable
+        )
+
+        sa.event.listen(
+            sa.orm.mapper,
+            'after_configured',
+            self.configure_vectors
+        )
+
+
+configurator = Configurator()
+configurator.register_listeners()
