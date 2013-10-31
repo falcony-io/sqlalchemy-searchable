@@ -7,9 +7,14 @@ from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
 from validators import email
 from .parser import SearchQueryParser, unicode_non_alnum
+from .types import CompositeTSVectorType
 
 
 __version__ = '0.5.0-dev'
+
+__all__ = (
+    CompositeTSVectorType
+)
 
 
 parser = SearchQueryParser()
