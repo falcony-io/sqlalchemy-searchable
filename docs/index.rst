@@ -192,7 +192,7 @@ PostgreSQL tsvectors handle email strings in a way that they don't get split int
 
     # not a valid email, split into three search terms:
     # 'john', 'fastmonkeys' and 'com'
-    query = search(query, u'john@@fastmonkeys.com)
+    query = search(query, u'john@@fastmonkeys.com')
 
 
 Internals
@@ -316,7 +316,7 @@ Now consider a situation where we want to find all articles, where either articl
                 combined_search_vector,
                 to_tsquery(
                     'simple',
-                    parse_search_query(search_query))
+                    parse_search_query(search_query)
                 ),
             )
         )
