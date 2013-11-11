@@ -4,7 +4,7 @@ from functools import partial
 import six
 import sqlalchemy as sa
 from sqlalchemy_utils import TSVectorType
-from sqlalchemy_utils.functions import has_changed
+from sqlalchemy_utils.functions import has_changes
 from sqlalchemy_utils.expressions import tsvector_concat
 
 
@@ -34,7 +34,7 @@ def has_changed_search_vector(obj):
     """
     for vector in search_vectors(obj):
         for column_name in vector.type.columns:
-            if has_changed(obj, column_name):
+            if has_changes(obj, column_name):
                 return True
     return False
 
