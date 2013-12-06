@@ -298,8 +298,9 @@ Now consider a situation where we want to find all articles, where either articl
 
 
     from sqlalchemy_searchable import parse_search_query
-    from sqlalchemy_utils import tsvector_match, tsvector_concat, to_tsquery
-
+    from sqlalchemy_utils.expressions import (
+        tsvector_match, tsvector_concat, to_tsquery
+    )
 
     search_query = u'matrix'
 
