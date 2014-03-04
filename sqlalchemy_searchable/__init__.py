@@ -78,8 +78,8 @@ def search(query, search_query, vector=None, catalog=None):
     Search given query with full text search.
 
     :param search_query: the search query
-    :param tablename: custom tablename
-    :param language: language to be passed to to_tsquery
+    :param vector: search vector to use
+    :param catalog: postgresql catalog to be used
     """
     if not search_query:
         return query
@@ -90,10 +90,12 @@ def search(query, search_query, vector=None, catalog=None):
 
     entity = query._entities[0].entity_zero.class_
 
-    search_vectors = inspect_search_vectors(entity)
+    if not vector:
+        search_vectors = inspect_search_vectors(entity)
+        vector = search_vectors[0]
 
     query = query.filter(
-        search_vectors[0].match_tsquery(search_query, catalog=catalog)
+        vector.match_tsquery(search_query, catalog=catalog)
     )
     return query.params(term=search_query)
 
