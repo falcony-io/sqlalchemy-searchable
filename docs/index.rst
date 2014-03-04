@@ -84,9 +84,7 @@ After we've created the articles, we can search trhough them.
 Multiple search vectors per class
 =================================
 
-
 ::
-
 
     class Article(Base):
         __tablename__ = 'article'
@@ -101,6 +99,11 @@ Multiple search vectors per class
             TSVectorType('name', 'content', 'desription')
         )
 
+After that, we can choose which search vector to use.
+::
+
+    query = session.query(Article)
+    query = search(query, 'first', vector=fat_search_vector)
 
 
 Search query operators
