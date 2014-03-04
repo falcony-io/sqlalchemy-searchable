@@ -1,6 +1,8 @@
 import sqlalchemy as sa
 from sqlalchemy_utils import TSVectorType
-from tests import SchemaTestCase
+from sqlalchemy_searchable import search
+
+from tests import SchemaTestCase, TestCase
 
 
 class TestMultipleSearchVectorsPerClass(SchemaTestCase):
@@ -26,3 +28,34 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
             name_vector = sa.Column(TSVectorType('name'))
 
             content_vector = sa.Column(TSVectorType('content'))
+
+
+class TestMultipleSearchVectorsSearchFunction(TestCase):
+
+    def create_models(self):
+        TestCase.create_models(self)
+
+        class TextMultiItem(self.Base):
+            __tablename__ = 'textmultiitem'
+
+            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+
+            name = sa.Column(sa.Unicode(255))
+            content = sa.Column(sa.UnicodeText)
+            name_vector = sa.Column(TSVectorType('name'))
+            content_vector = sa.Column(TSVectorType('content'))
+
+        self.TextMultiItem = TextMultiItem
+
+    def setup_method(self, method):
+        TestCase.setup_method(self, method)
+        self.session.add(self.TextMultiItem(name=u'index', content=u'lorem ipsum'))
+        self.session.add(self.TextMultiItem(name=u'ipsum', content=u'admin content'))
+        self.session.commit()
+
+    def test_schoose_vector(self):
+        query = self.TextItemQuery(self.TextMultiItem, self.session)
+        s1 = search(query, 'ipsum', vector=self.TextMultiItem.name_vector)
+        assert s1.first().name == 'ipsum'
+        s2 = search(query, 'ipsum', vector=self.TextMultiItem.content_vector)
+        assert s2.first().name == 'index'
