@@ -23,7 +23,7 @@ class TestSearchQueryMixin(TestCase):
         )
         self.session.commit()
 
-    def test_searches_trhough_all_fulltext_indexed_fields(self):
+    def test_searches_through_all_fulltext_indexed_fields(self):
         assert (
             self.TextItemQuery(self.TextItem, self.session)
             .search('admin').count() == 1
@@ -55,6 +55,20 @@ class TestSearchQueryMixin(TestCase):
         query = self.TextItemQuery(self.TextItem, self.session)
         query = query.search(u'orrimorri', catalog='finnish')
         assert "to_tsquery(:to_tsquery_1, :to_tsquery_2)" in str(query)
+
+
+class TestHyphenIntegerSearchTerms(TestCase):
+    def setup_method(self, method):
+        TestCase.setup_method(self, method)
+        self.session.add(
+            self.TextItem(name=u'index', content=u'some 12-14')
+        )
+        self.session.commit()
+
+    def test_with_hyphen_search_term(self):
+        assert self.TextItemQuery(
+            self.TextItem, self.session
+        ).search('12-14').count()
 
 
 class TestSearchFunction(TestCase):
