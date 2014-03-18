@@ -9,7 +9,6 @@ from sqlalchemy_utils.types import TSVectorType
 from sqlalchemy_searchable import (
     make_searchable, SearchQueryMixin, search_manager
 )
-from sqlalchemy_searchable.types import configurator
 
 
 make_searchable()
@@ -29,7 +28,6 @@ class TestCase(object):
 
     def teardown_method(self, method):
         search_manager.processed_columns = []
-        configurator.configurables = []
 
         self.session.expunge_all()
         self.session.close_all()
