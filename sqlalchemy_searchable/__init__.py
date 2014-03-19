@@ -104,8 +104,10 @@ def quote_identifier(identifier):
 class SearchManager():
     default_options = {
         'tablename': None,
+        'remove_hyphens': False,
         'search_trigger_name': '{table}_{column}_trigger',
         'search_index_name': '{table}_{column}_index',
+        'search_trigger_function_name': '{table}_{column}_update',
         'catalog': 'pg_catalog.english'
     }
 
@@ -143,6 +145,44 @@ class SearchManager():
             )
         )
 
+    def search_function_args(self, column):
+        return 'CONCAT(%s)' % ', '.join([
+            "REPLACE(COALESCE(NEW.%s, ''), '-', ' '), ' '" % column_name
+            for column_name in list(column.type.columns)
+        ])
+
+    def search_function_ddl(self, column):
+        tablename = column.table.name
+        return DDL(
+            """
+            CREATE FUNCTION
+                {search_trigger_function_name}() RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.{search_vector_name} = to_tsvector(
+                    {arguments}
+                );
+                RETURN NEW;
+            END
+            $$ LANGUAGE 'plpgsql';
+            """
+            .format(
+                search_trigger_function_name=self.search_function_name(column),
+                table=quote_identifier(tablename),
+                search_vector_name=column.name,
+                arguments=', '.join([
+                    "'%s'" % self.option(column, 'catalog'),
+                    self.search_function_args(column)
+                ])
+            )
+        )
+
+    def search_function_name(self, column):
+        tablename = column.table.name
+        return self.option(
+            column,
+            'search_trigger_name'
+        ).format(table=tablename, column=column.name)
+
     def search_trigger_ddl(self, column):
         """
         Returns the ddl for creating an automatically updated search trigger.
@@ -160,16 +200,24 @@ class SearchManager():
             CREATE TRIGGER {search_trigger_name}
             BEFORE UPDATE OR INSERT ON {table}
             FOR EACH ROW EXECUTE PROCEDURE
-            tsvector_update_trigger({arguments})
+            {procedure_ddl}
             """
             .format(
                 search_trigger_name=search_trigger_name,
                 table=quote_identifier(tablename),
-                arguments=', '.join([
-                    column.name,
-                    "'%s'" % self.option(column, 'catalog')] +
-                    list(column.type.columns)
-                )
+                procedure_ddl=
+                self.search_trigger_function_with_trigger_args(column)
+            )
+        )
+
+    def search_trigger_function_with_trigger_args(self, column):
+        if self.option(column, 'remove_hyphens'):
+            return self.search_function_name(column) + '()'
+        return 'tsvector_update_trigger({arguments})'.format(
+            arguments=', '.join([
+                column.name,
+                "'%s'" % self.option(column, 'catalog')] +
+                list(column.type.columns)
             )
         )
 
@@ -206,6 +254,20 @@ class SearchManager():
             # This sets up the trigger that keeps the tsvector column up to
             # date.
             if column.type.columns:
+                if self.option(column, 'remove_hyphens'):
+                    event.listen(
+                        table,
+                        'after_create',
+                        self.search_function_ddl(column)
+                    )
+                    event.listen(
+                        table,
+                        'after_drop',
+                        DDL(
+                            'DROP FUNCTION IF EXISTS %s()' %
+                            self.search_function_name(column)
+                        )
+                    )
                 event.listen(
                     table,
                     'after_create',

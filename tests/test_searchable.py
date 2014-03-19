@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy_searchable import search
-from tests import TestCase
+from tests import TestCase, create_test_cases
 
 
-class TestSearchQueryMixin(TestCase):
+class SearchQueryMixinTestCase(TestCase):
     def setup_method(self, method):
         TestCase.setup_method(self, method)
         self.session.add(
@@ -19,7 +19,10 @@ class TestSearchQueryMixin(TestCase):
             )
         )
         self.session.add(
-            self.TextItem(name=u'home', content=u'this is the home page')
+            self.TextItem(
+                name=u'home',
+                content=u'this is the home page of someone@example.com'
+            )
         )
         self.session.commit()
 
@@ -51,24 +54,18 @@ class TestSearchQueryMixin(TestCase):
             self.TextItem, self.session
         ).search('@#').count()
 
+    def test_search_by_email(self):
+        assert self.TextItemQuery(
+            self.TextItem, self.session
+        ).search('someone@example.com').count()
+
     def test_supports_catalog_parameter(self):
         query = self.TextItemQuery(self.TextItem, self.session)
         query = query.search(u'orrimorri', catalog='finnish')
         assert "to_tsquery(:to_tsquery_1, :to_tsquery_2)" in str(query)
 
 
-class TestHyphenIntegerSearchTerms(TestCase):
-    def setup_method(self, method):
-        TestCase.setup_method(self, method)
-        self.session.add(
-            self.TextItem(name=u'index', content=u'some 12-14')
-        )
-        self.session.commit()
-
-    def test_with_hyphen_search_term(self):
-        assert self.TextItemQuery(
-            self.TextItem, self.session
-        ).search('12-14').count()
+create_test_cases(SearchQueryMixinTestCase)
 
 
 class TestSearchFunction(TestCase):

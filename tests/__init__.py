@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import sqlalchemy as sa
+import itertools as it
+import inspect
 
+import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
@@ -15,6 +17,11 @@ make_searchable()
 
 
 class TestCase(object):
+    remove_hyphens = False
+    search_trigger_name = '{table}_{column}_trigger'
+    search_index_name = '{table}_{column}_index'
+    search_trigger_function_name = '{table}_{column}_update'
+
     def setup_method(self, method):
         self.engine = create_engine(
             'postgres://postgres@localhost/sqlalchemy_searchable_test'
@@ -25,6 +32,15 @@ class TestCase(object):
 
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
+
+    @property
+    def options(self):
+        return {
+            'remove_hyphens': self.remove_hyphens,
+            'search_trigger_name': self.search_trigger_name,
+            'search_index_name': self.search_index_name,
+            'search_trigger_function_name': self.search_trigger_function_name
+        }
 
     def teardown_method(self, method):
         search_manager.processed_columns = []
@@ -46,7 +62,9 @@ class TestCase(object):
 
             name = sa.Column(sa.Unicode(255))
 
-            search_vector = sa.Column(TSVectorType('name', 'content'))
+            search_vector = sa.Column(
+                TSVectorType('name', 'content', **self.options)
+            )
 
             content = sa.Column(sa.UnicodeText)
 
@@ -54,14 +72,15 @@ class TestCase(object):
             __tablename__ = 'order'
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
             name = sa.Column(sa.Unicode(255))
-            search_vector = sa.Column(TSVectorType('name'))
+            search_vector = sa.Column(
+                TSVectorType('name', **self.options)
+            )
 
         class Article(TextItem):
             __tablename__ = 'article'
             id = sa.Column(
                 sa.Integer, sa.ForeignKey(TextItem.id), primary_key=True
             )
-
             created_at = sa.Column(sa.DateTime)
 
         self.TextItemQuery = TextItemQuery
@@ -99,3 +118,58 @@ class SchemaTestCase(TestCase):
             ORDER BY trigger_name"""
         ).fetchall()
         assert self.should_create_triggers == list(map(lambda a: a[0], rows))
+
+
+setting_variants = {
+    'remove_hyphens': [True, False],
+    'search_trigger_name': [
+        '{table}_{column}_trigger',
+        '{table}_{column}_trg'
+    ],
+    'search_index_name': [
+        '{table}_{column}_index',
+        '{table}_{column}_idx',
+    ],
+    'search_trigger_function_name': [
+        '{table}_{column}_update_trigger',
+        '{table}_{column}_update'
+    ]
+}
+
+
+def create_test_cases(base_class, setting_variants=setting_variants):
+    """
+    Function for creating bunch of test case classes for given base class
+    and setting variants. Number of test cases created is the number of linear
+    combinations with setting variants.
+
+    :param base_class:
+        Base test case class, should be in format 'xxxTestCase'
+    :param setting_variants:
+        A dictionary with keys as versioned configuration option keys and
+        values as list of possible option values.
+    """
+    names = sorted(setting_variants)
+    combinations = [
+        dict(zip(names, prod))
+        for prod in
+        it.product(*(setting_variants[name] for name in names))
+    ]
+
+    # Get the module where this function was called in.
+    frm = inspect.stack()[1]
+    module = inspect.getmodule(frm[0])
+
+    class_suffix = base_class.__name__[0:-len('TestCase')]
+    for index, combination in enumerate(combinations):
+        class_name = 'Test%s%i' % (class_suffix, index)
+        # Assign a new test case class for current module.
+        setattr(
+            module,
+            class_name,
+            type(
+                class_name,
+                (base_class, ),
+                combination
+            )
+        )

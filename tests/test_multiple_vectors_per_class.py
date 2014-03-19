@@ -49,8 +49,12 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
 
     def setup_method(self, method):
         TestCase.setup_method(self, method)
-        self.session.add(self.TextMultiItem(name=u'index', content=u'lorem ipsum'))
-        self.session.add(self.TextMultiItem(name=u'ipsum', content=u'admin content'))
+        self.session.add(
+            self.TextMultiItem(name=u'index', content=u'lorem ipsum')
+        )
+        self.session.add(
+            self.TextMultiItem(name=u'ipsum', content=u'admin content')
+        )
         self.session.commit()
 
     def test_schoose_vector(self):
