@@ -227,7 +227,11 @@ The following configuration options can be defined globally by passing them to m
 
 * search_index_name - name of the search index, default: {table}_search_index
 
+* search_trigger_function_name - the name for the database search vector updating function. This configuration option is only used if remove_hyphens is set as `True` otherwise the builtin postgresql `tsvector_update_trigger` is used for updating search vectors.
+
 * catalog - postgresql catalog to be used, default: pg_catalog.english
+
+* remove_hyphens - boolean indicating whether or not hyphen marks should be removed from values that are search vectorized. If this is set as `True` a separate database function is created that strips the hyphens whenever search vector gets updated. This defaults to `True` as of version 0.5.0.
 
 
 Example ::

@@ -17,7 +17,7 @@ make_searchable()
 
 
 class TestCase(object):
-    remove_hyphens = False
+    remove_hyphens = True
     search_trigger_name = '{table}_{column}_trigger'
     search_index_name = '{table}_{column}_index'
     search_trigger_function_name = '{table}_{column}_update'
