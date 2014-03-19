@@ -4,10 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
-0.5.0 (not released yet)
-^^^^^^^^^^^^^^^^^^^^^^^^
+0.5.0 (2014-03-19)
+^^^^^^^^^^^^^^^^^^
 
 - Python 3 support
+- Enhanced email token handling
+- New configuration option: remove_hyphens
 
 
 0.4.5 (2013-10-22)
