@@ -5,8 +5,10 @@ SQLAlchemy-Searchable
 Provides fulltext search capabilities for declarative SQLAlchemy models.
 """
 
-from setuptools import setup, Command
+import os
+import re
 import subprocess
+from setuptools import setup, Command
 
 
 class PyTest(Command):
@@ -23,6 +25,18 @@ class PyTest(Command):
         raise SystemExit(errno)
 
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def get_version():
+    filename = os.path.join(HERE, 'sqlalchemy_searchable', '__init__.py')
+    with open(filename) as f:
+        contents = f.read()
+    pattern = r"^__version__ = '(.*?)'$"
+    return re.search(pattern, contents, re.MULTILINE).group(1)
+
+
+
 extras_require = {
     'test': [
         'pytest>=2.2.3',
@@ -31,7 +45,7 @@ extras_require = {
 
 setup(
     name='SQLAlchemy-Searchable',
-    version='0.6.0',
+    version=get_version(),
     url='https://github.com/kvesteri/sqlalchemy-searchable',
     license='BSD',
     author='Konsta Vesterinen',
