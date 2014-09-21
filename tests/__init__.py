@@ -121,7 +121,10 @@ class SchemaTestCase(TestCase):
 
 
 setting_variants = {
-    'remove_hyphens': [True, False],
+    'remove_hyphens': [
+        True,
+        False
+    ],
     'search_trigger_name': [
         '{table}_{column}_trigger',
         '{table}_{column}_trg'

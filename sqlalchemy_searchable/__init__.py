@@ -102,6 +102,127 @@ def quote_identifier(identifier):
     return '"%s"' % identifier
 
 
+class SQLConstruct(object):
+    def __init__(self, column, options=None):
+        self.table = column.table
+        self.column = column
+        if not options:
+           options = {}
+        for key, value in SearchManager.default_options.items():
+            try:
+                option = self.column.type.options[key]
+            except (KeyError, AttributeError):
+                option = value
+            options.setdefault(key, option)
+        self.options = options
+
+    @property
+    def table_name(self):
+        if self.table.schema:
+            return '%s."%s"' % (self.table.schema, self.table.name)
+        else:
+            return '"' + self.table.name + '"'
+
+    @property
+    def search_index_name(self):
+        return self.options['search_index_name'].format(
+            table=self.table.name,
+            column=self.column.name
+        )
+
+    @property
+    def search_function_name(self):
+        return self.options['search_trigger_function_name'].format(
+            table=self.column.table.name,
+            column=self.column.name
+        )
+
+    @property
+    def search_trigger_name(self):
+        return self.options['search_trigger_name'].format(
+            table=self.column.table.name,
+            column=self.column.name
+        )
+
+    @property
+    def search_function_args(self):
+        return 'CONCAT(%s)' % ', '.join(
+            "REPLACE(COALESCE(NEW.%s, ''), '-', ' '), ' '" % column_name
+            for column_name in list(self.column.type.columns)
+        )
+
+
+class CreateSearchFunctionSQL(SQLConstruct):
+    def __str__(self):
+        return (
+            """CREATE FUNCTION
+                {search_trigger_function_name}() RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.{search_vector_name} = to_tsvector(
+                    {arguments}
+                );
+                RETURN NEW;
+            END
+            $$ LANGUAGE 'plpgsql';
+            """
+        ).format(
+            search_trigger_function_name=self.search_function_name,
+            search_vector_name=self.column.name,
+            arguments="'%s', %s" % (
+                self.options['catalog'],
+                self.search_function_args
+            )
+        )
+
+
+class CreateSearchTriggerSQL(SQLConstruct):
+    @property
+    def search_trigger_function_with_trigger_args(self):
+        if self.options['remove_hyphens']:
+            return self.search_function_name + '()'
+        return 'tsvector_update_trigger({arguments})'.format(
+            arguments=', '.join(
+                [
+                    self.column.name,
+                    "'%s'" % self.options['catalog']
+                ] +
+                list(self.column.type.columns)
+            )
+        )
+
+    def __str__(self):
+        return (
+            "CREATE TRIGGER {search_trigger_name}"
+            " BEFORE UPDATE OR INSERT ON {table}"
+            " FOR EACH ROW EXECUTE PROCEDURE"
+            " {procedure_ddl}"
+            .format(
+                search_trigger_name=self.search_trigger_name,
+                table=self.table_name,
+                procedure_ddl=
+                self.search_trigger_function_with_trigger_args
+            )
+        )
+
+
+class CreateSearchIndexSQL(SQLConstruct):
+    def __str__(self):
+        return (
+            "CREATE INDEX {search_index_name} ON {table}"
+            " USING gin({search_vector_name})"
+            .format(
+                table=self.table_name,
+                search_index_name=self.search_index_name,
+                search_vector_name=self.column.name
+            )
+        )
+
+
+class DropSearchFunctionSQL(SQLConstruct):
+    def __str__(self):
+        return 'DROP FUNCTION IF EXISTS %s()' % self.search_function_name
+
+
 class SearchManager():
     default_options = {
         'tablename': None,
@@ -129,60 +250,10 @@ class SearchManager():
 
         :param column: TSVectorType typed SQLAlchemy column object
         """
-        tablename = column.table.name
-        search_index_name = self.option(column, 'search_index_name').format(
-            table=tablename,
-            column=column.name
-        )
-        return DDL(
-            """
-            CREATE INDEX {search_index_name} ON {table}
-            USING gin({search_vector_name})
-            """
-            .format(
-                table=quote_identifier(tablename),
-                search_index_name=search_index_name,
-                search_vector_name=column.name
-            )
-        )
-
-    def search_function_args(self, column):
-        return 'CONCAT(%s)' % ', '.join(
-            "REPLACE(COALESCE(NEW.%s, ''), '-', ' '), ' '" % column_name
-            for column_name in list(column.type.columns)
-        )
+        return DDL(str(CreateSearchIndexSQL(column)))
 
     def search_function_ddl(self, column):
-        tablename = column.table.name
-        return DDL(
-            """
-            CREATE FUNCTION
-                {search_trigger_function_name}() RETURNS TRIGGER AS $$
-            BEGIN
-                NEW.{search_vector_name} = to_tsvector(
-                    {arguments}
-                );
-                RETURN NEW;
-            END
-            $$ LANGUAGE 'plpgsql';
-            """
-            .format(
-                search_trigger_function_name=self.search_function_name(column),
-                table=quote_identifier(tablename),
-                search_vector_name=column.name,
-                arguments=', '.join([
-                    "'%s'" % self.option(column, 'catalog'),
-                    self.search_function_args(column)
-                ])
-            )
-        )
-
-    def search_function_name(self, column):
-        tablename = column.table.name
-        return self.option(
-            column,
-            'search_trigger_name'
-        ).format(table=tablename, column=column.name)
+        return DDL(str(CreateSearchFunctionSQL(column)))
 
     def search_trigger_ddl(self, column):
         """
@@ -190,37 +261,7 @@ class SearchManager():
 
         :param column: TSVectorType typed SQLAlchemy column object
         """
-        tablename = column.table.name
-        search_trigger_name = self.option(
-            column,
-            'search_trigger_name'
-        ).format(table=tablename, column=column.name)
-
-        return DDL(
-            """
-            CREATE TRIGGER {search_trigger_name}
-            BEFORE UPDATE OR INSERT ON {table}
-            FOR EACH ROW EXECUTE PROCEDURE
-            {procedure_ddl}
-            """
-            .format(
-                search_trigger_name=search_trigger_name,
-                table=quote_identifier(tablename),
-                procedure_ddl=
-                self.search_trigger_function_with_trigger_args(column)
-            )
-        )
-
-    def search_trigger_function_with_trigger_args(self, column):
-        if self.option(column, 'remove_hyphens'):
-            return self.search_function_name(column) + '()'
-        return 'tsvector_update_trigger({arguments})'.format(
-            arguments=', '.join([
-                column.name,
-                "'%s'" % self.option(column, 'catalog')] +
-                list(column.type.columns)
-            )
-        )
+        return DDL(str(CreateSearchTriggerSQL(column)))
 
     def inspect_columns(self, cls):
         """
@@ -233,7 +274,7 @@ class SearchManager():
             if isinstance(column.type, TSVectorType)
         ]
 
-    def define_triggers_and_indexes(self, mapper, cls):
+    def attach_ddl_listeners(self, mapper, cls):
         columns = self.inspect_columns(cls)
         for column in columns:
             # We don't want sqlalchemy to know about this column so we add it
@@ -264,10 +305,7 @@ class SearchManager():
                     event.listen(
                         table,
                         'after_drop',
-                        DDL(
-                            'DROP FUNCTION IF EXISTS %s()' %
-                            self.search_function_name(column)
-                        )
+                        DDL(str(DropSearchFunctionSQL(column)))
                     )
                 event.listen(
                     table,
@@ -288,5 +326,5 @@ def make_searchable(
 ):
     manager.options.update(options)
     event.listen(
-        mapper, 'instrument_class', manager.define_triggers_and_indexes
+        mapper, 'instrument_class', manager.attach_ddl_listeners
     )

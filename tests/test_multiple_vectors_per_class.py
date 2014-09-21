@@ -31,7 +31,6 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
 
 
 class TestMultipleSearchVectorsSearchFunction(TestCase):
-
     def create_models(self):
         TestCase.create_models(self)
 
