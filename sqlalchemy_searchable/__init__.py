@@ -36,8 +36,9 @@ def parse_search_query(query, parser=parser):
     query = re.sub(r'(?i)(?<=[^\s|^])-(?=[^\s])', ' ', query)
 
     parts = query.split()
-    parts = filter(lambda a: a, parts)
-    parts = map(lambda s: s.strip(), map(filter_term, parts))
+    parts = [
+        filter_term(part).strip() for part in parts if part
+    ]
     query = ' '.join(parts)
 
     if not query:
@@ -146,10 +147,10 @@ class SearchManager():
         )
 
     def search_function_args(self, column):
-        return 'CONCAT(%s)' % ', '.join([
+        return 'CONCAT(%s)' % ', '.join(
             "REPLACE(COALESCE(NEW.%s, ''), '-', ' '), ' '" % column_name
             for column_name in list(column.type.columns)
-        ])
+        )
 
     def search_function_ddl(self, column):
         tablename = column.table.name
