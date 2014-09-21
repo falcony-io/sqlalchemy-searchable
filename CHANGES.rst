@@ -4,7 +4,7 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
-0.6.0 (2014-09-xx)
+0.6.0 (2014-09-21)
 ^^^^^^^^^^^^^^^^^^
 
 - Added sync_trigger alembic helper function
