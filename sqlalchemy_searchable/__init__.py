@@ -9,7 +9,7 @@ from validators import email
 from .parser import SearchQueryParser, unicode_non_alnum
 
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 
 parser = SearchQueryParser()
@@ -103,18 +103,25 @@ def quote_identifier(identifier):
 
 
 class SQLConstruct(object):
-    def __init__(self, column, options=None):
-        self.table = column.table
-        self.column = column
+    def __init__(self, tsvector_column, indexed_columns=None, options=None):
+        self.table = tsvector_column.table
+        self.tsvector_column = tsvector_column
+        self.options = self.init_options(options)
+        if indexed_columns:
+            self.indexed_columns = list(indexed_columns)
+        else:
+            self.indexed_columns = list(self.tsvector_column.type.columns)
+
+    def init_options(self, options=None):
         if not options:
            options = {}
         for key, value in SearchManager.default_options.items():
             try:
-                option = self.column.type.options[key]
+                option = self.tsvector_column.type.options[key]
             except (KeyError, AttributeError):
                 option = value
             options.setdefault(key, option)
-        self.options = options
+        return options
 
     @property
     def table_name(self):
@@ -127,28 +134,28 @@ class SQLConstruct(object):
     def search_index_name(self):
         return self.options['search_index_name'].format(
             table=self.table.name,
-            column=self.column.name
+            column=self.tsvector_column.name
         )
 
     @property
     def search_function_name(self):
         return self.options['search_trigger_function_name'].format(
-            table=self.column.table.name,
-            column=self.column.name
+            table=self.table.name,
+            column=self.tsvector_column.name
         )
 
     @property
     def search_trigger_name(self):
         return self.options['search_trigger_name'].format(
-            table=self.column.table.name,
-            column=self.column.name
+            table=self.table.name,
+            column=self.tsvector_column.name
         )
 
     @property
     def search_function_args(self):
         return 'CONCAT(%s)' % ', '.join(
             "REPLACE(COALESCE(NEW.%s, ''), '-', ' '), ' '" % column_name
-            for column_name in list(self.column.type.columns)
+            for column_name in self.indexed_columns
         )
 
 
@@ -167,7 +174,7 @@ class CreateSearchFunctionSQL(SQLConstruct):
             """
         ).format(
             search_trigger_function_name=self.search_function_name,
-            search_vector_name=self.column.name,
+            search_vector_name=self.tsvector_column.name,
             arguments="'%s', %s" % (
                 self.options['catalog'],
                 self.search_function_args
@@ -183,10 +190,10 @@ class CreateSearchTriggerSQL(SQLConstruct):
         return 'tsvector_update_trigger({arguments})'.format(
             arguments=', '.join(
                 [
-                    self.column.name,
+                    self.tsvector_column.name,
                     "'%s'" % self.options['catalog']
                 ] +
-                list(self.column.type.columns)
+                self.indexed_columns
             )
         )
 
@@ -213,7 +220,7 @@ class CreateSearchIndexSQL(SQLConstruct):
             .format(
                 table=self.table_name,
                 search_index_name=self.search_index_name,
-                search_vector_name=self.column.name
+                search_vector_name=self.tsvector_column.name
             )
         )
 
@@ -221,6 +228,14 @@ class CreateSearchIndexSQL(SQLConstruct):
 class DropSearchFunctionSQL(SQLConstruct):
     def __str__(self):
         return 'DROP FUNCTION IF EXISTS %s()' % self.search_function_name
+
+
+class DropSearchTriggerSQL(SQLConstruct):
+    def __str__(self):
+        return 'DROP TRIGGER IF EXISTS %s ON %s' % (
+            self.search_trigger_name,
+            self.table_name
+        )
 
 
 class SearchManager():
@@ -317,6 +332,31 @@ class SearchManager():
 
 
 search_manager = SearchManager()
+
+
+def sync_trigger(
+    conn,
+    table_name,
+    tsvector_column,
+    indexed_columns,
+    options=None
+):
+    meta = sa.MetaData()
+    table = sa.Table(
+        table_name,
+        meta,
+        autoload=True,
+        autoload_with=conn
+    )
+    params = dict(
+        tsvector_column=getattr(table.c, tsvector_column),
+        indexed_columns=indexed_columns,
+        options=options
+    )
+    conn.execute(str(DropSearchFunctionSQL(**params)))
+    conn.execute(str(DropSearchTriggerSQL(**params)))
+    conn.execute(str(CreateSearchFunctionSQL(**params)))
+    conn.execute(str(CreateSearchTriggerSQL(**params)))
 
 
 def make_searchable(

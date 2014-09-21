@@ -31,7 +31,7 @@ extras_require = {
 
 setup(
     name='SQLAlchemy-Searchable',
-    version='0.5.0',
+    version='0.6.0',
     url='https://github.com/kvesteri/sqlalchemy-searchable',
     license='BSD',
     author='Konsta Vesterinen',

@@ -28,10 +28,9 @@ class TestCase(object):
         )
         self.Base = declarative_base()
         self.create_models()
-        self.Base.metadata.create_all(self.engine)
-
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
+        self.create_tables()
 
     @property
     def options(self):
@@ -42,13 +41,19 @@ class TestCase(object):
             'search_trigger_function_name': self.search_trigger_function_name
         }
 
+    def create_tables(self):
+        self.Base.metadata.create_all(self.engine)
+
+    def drop_tables(self):
+        self.Base.metadata.drop_all(self.engine)
+
     def teardown_method(self, method):
         search_manager.processed_columns = []
 
         self.session.expunge_all()
         self.session.close_all()
         #self.session.remove()
-        self.Base.metadata.drop_all(self.engine)
+        self.drop_tables()
         self.engine.dispose()
 
     def create_models(self):
