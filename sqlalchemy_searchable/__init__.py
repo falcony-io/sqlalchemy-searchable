@@ -341,6 +341,61 @@ def sync_trigger(
     indexed_columns,
     options=None
 ):
+    """
+    Synchronizes search trigger and trigger function for given table and given
+    search index column. Internally this function executes the following SQL
+    queries:
+
+    * Drops search trigger for given table (if it exists)
+    * Drops search function for given table (if it exists)
+    * Creates search function for given table
+    * Creates search trigger for given table
+    * Updates all rows for given search vector by running a column=column update query for given table.
+
+
+    ::
+
+        from sqlalchemy_searchable import sync_trigger
+
+
+        sync_trigger(
+            conn,
+            'article',
+            'search_vector',
+            ['name', 'content']
+        )
+
+
+    This function is especially useful when working with alembic migrations.
+    In the following example we add a content column to article table and then
+    sync the trigger to contain this new column.
+
+
+    ::
+
+        # ... some alembic setup
+
+        from alembic import op
+        from sqlalchemy_searchable import sync_trigger
+
+
+        def upgrade():
+            conn = op.get_bind()
+            op.add_column('article', sa.Column('content', sa.Text))
+
+            sync_trigger(conn, 'article', 'search_vector', ['name', 'content'])
+
+        # ... same for downgrade
+
+
+    :param conn: SQLAlchemy Connection object
+    :param table_name: name of the table to apply search trigger syncing
+    :param tsvector_column:
+        TSVector typed column which is used as the search index column
+    :param indexed_columns:
+        Full text indexed column names as a list
+    :param options: Dictionary of configuration options
+    """
     meta = sa.MetaData()
     table = sa.Table(
         table_name,
