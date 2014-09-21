@@ -354,13 +354,17 @@ def sync_trigger(
         options=options
     )
     classes = [
-        DropSearchFunctionSQL,
         DropSearchTriggerSQL,
+        DropSearchFunctionSQL,
         CreateSearchFunctionSQL,
         CreateSearchTriggerSQL,
     ]
     for class_ in classes:
         conn.execute(str(class_(**params)))
+    update_sql = table.update().values(
+        {indexed_columns[0]: sa.text(indexed_columns[0])}
+    )
+    conn.execute(update_sql)
 
 
 def make_searchable(

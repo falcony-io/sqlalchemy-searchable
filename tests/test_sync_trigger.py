@@ -33,5 +33,22 @@ class SyncTriggerTestCase(TestCase):
         vector = conn.execute('SELECT search_vector FROM article').scalar()
         assert vector == "'content':4 'name':2"
 
+    def test_updates_column_values(self):
+        conn = self.session.bind
+        sync_trigger(
+            conn,
+            'article',
+            'search_vector',
+            ['name', 'content']
+        )
+        conn.execute(
+            '''INSERT INTO article (name, content)
+            VALUES ('some name', 'some content')'''
+        )
+        conn.execute('ALTER TABLE article DROP COLUMN name')
+        sync_trigger(conn, 'article', 'search_vector', ['content'])
+        vector = conn.execute('SELECT search_vector FROM article').scalar()
+        assert vector == "'content':2"
+
 
 create_test_cases(SyncTriggerTestCase)
