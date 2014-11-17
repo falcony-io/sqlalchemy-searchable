@@ -7,22 +7,7 @@ Provides fulltext search capabilities for declarative SQLAlchemy models.
 
 import os
 import re
-import subprocess
-from setuptools import setup, Command
-
-
-class PyTest(Command):
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        errno = subprocess.call(['py.test'])
-        raise SystemExit(errno)
+from setuptools import setup
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +19,6 @@ def get_version():
         contents = f.read()
     pattern = r"^__version__ = '(.*?)'$"
     return re.search(pattern, contents, re.MULTILINE).group(1)
-
 
 
 extras_require = {
@@ -67,7 +51,6 @@ setup(
         'validators>=0.3.0',
     ],
     extras_require=extras_require,
-    cmdclass={'test': PyTest},
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
