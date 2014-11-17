@@ -19,7 +19,9 @@ The following configuration options can be defined globally by passing them to m
 
 * catalog - postgresql catalog to be used, default: pg_catalog.english
 
-* remove_hyphens - boolean indicating whether or not hyphen marks should be removed from values that are search vectorized. If this is set as `True` a separate database function is created that strips the hyphens whenever search vector gets updated. Since '-' is used as a negation operator it is strongly encouraged that this is set as `True`. This defaults to `True` as of version 0.5.0.
+* remove_symbols - String indicating all symbols that should be removed and converted to emptry strings in each search vectorized column. By default this is `-@.`, meaning all `-`, `@` and `.` will be converted to empty strings.
+
+Before version 0.7.0 this configuration option was known as 'remove_hyphens' and provided only limited conversion of `-` symbols to empty strings.
 
 
 Example ::

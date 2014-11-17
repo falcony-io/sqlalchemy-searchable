@@ -11,7 +11,7 @@ class SignedIntegerTokenTestCase(TestCase):
 
 
 class TestSignedIntegersWithRemoveHyphens(SignedIntegerTokenTestCase):
-    remove_hyphens = True
+    remove_symbols = '-@.'
 
     def test_with_hyphen_search_term(self):
         assert self.TextItemQuery(
@@ -20,7 +20,7 @@ class TestSignedIntegersWithRemoveHyphens(SignedIntegerTokenTestCase):
 
 
 class TestSignedIntegersWithoutRemoveHyphens(SignedIntegerTokenTestCase):
-    remove_hyphens = False
+    remove_symbols = ''
 
     def test_with_hyphen_search_term(self):
         assert not self.TextItemQuery(

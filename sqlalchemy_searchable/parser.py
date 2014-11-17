@@ -3,6 +3,7 @@ Search query parser
 
 Influenced by http://pyparsing.wikispaces.com/file/view/searchparser.py
 """
+import re
 import unicodedata
 import six
 from pyparsing import (
@@ -15,6 +16,7 @@ from pyparsing import (
     Suppress,
     Word,
 )
+from validators import email
 
 
 def is_alphanumeric(c):
@@ -34,8 +36,9 @@ unicode_non_alnum = ''.join(
 
 
 class SearchQueryParser(object):
-    def __init__(self, wildcard=':*'):
+    def __init__(self, wildcard=':*', emails_as_tokens=False):
         self.wildcard = wildcard
+        self.emails_as_tokens = emails_as_tokens
         self._methods = {
             'and': self.eval_and,
             'not': self.eval_not,
@@ -44,6 +47,19 @@ class SearchQueryParser(object):
             'word': self.eval_word
         }
         self._parser = self.parser()
+
+    def remove_special_chars(self, term):
+        """
+        Removes all illegal characters from the search term. PostgreSQL search
+        vector parser notices email addresses hence we need special parsing for
+        them.
+
+        :param term: search term to filter
+        """
+        if self.emails_as_tokens and email(term):
+            return term
+        else:
+            return re.sub(r'[%s]+' % unicode_non_alnum, ' ', term)
 
     def parser(self):
         """

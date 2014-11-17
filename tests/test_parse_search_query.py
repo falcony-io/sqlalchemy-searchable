@@ -35,9 +35,18 @@ class TestParseSearchQuery(object):
             '12331:* | 12a12:*'
         )
 
-    def test_emails(self):
+    def test_emails_without_email_tokens(self):
         assert (
             parse_search_query('john@fastmonkeys.com') ==
+            'john:* & fastmonkeys:* & com:*'
+        )
+
+    def test_emails_with_email_tokens(self):
+        assert (
+            parse_search_query(
+                'john@fastmonkeys.com',
+                parser=SearchQueryParser(emails_as_tokens=True)
+            ) ==
             'john@fastmonkeys.com:*'
         )
 

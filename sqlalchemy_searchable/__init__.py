@@ -5,28 +5,13 @@ import sqlalchemy as sa
 from sqlalchemy import event
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
-from validators import email
-from .parser import SearchQueryParser, unicode_non_alnum
+from .parser import SearchQueryParser
 
 
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 
 
 parser = SearchQueryParser()
-
-
-def filter_term(term):
-    """
-    Removes all illegal characters from the search term but only if given
-    search term is not an email. PostgreSQL search vector parser notices email
-    addresses hence we need special parsing for them here also.
-
-    :param term: search term to filter
-    """
-    if email(term):
-        return term
-    else:
-        return re.sub(r'[%s]+' % unicode_non_alnum, ' ', term)
 
 
 def parse_search_query(query, parser=parser):
@@ -37,13 +22,11 @@ def parse_search_query(query, parser=parser):
 
     parts = query.split()
     parts = [
-        filter_term(part).strip() for part in parts if part
+        parser.remove_special_chars(part).strip() for part in parts if part
     ]
     query = ' '.join(parts)
-
     if not query:
         return u''
-
     try:
         return parser.parse(query)
     except ParseException:
@@ -151,10 +134,19 @@ class SQLConstruct(object):
             column=self.tsvector_column.name
         )
 
+    def format_column(self, column_name):
+        value = "COALESCE(NEW.%s, '')" % column_name
+        if self.options['remove_symbols']:
+            value = "REGEXP_REPLACE(%s, '[%s]', ' ', 'g')" % (
+                value,
+                self.options['remove_symbols']
+            )
+        return "%s, ' '" % value
+
     @property
     def search_function_args(self):
         return 'CONCAT(%s)' % ', '.join(
-            "REPLACE(COALESCE(NEW.%s, ''), '-', ' '), ' '" % column_name
+            self.format_column(column_name)
             for column_name in self.indexed_columns
         )
 
@@ -185,7 +177,7 @@ class CreateSearchFunctionSQL(SQLConstruct):
 class CreateSearchTriggerSQL(SQLConstruct):
     @property
     def search_trigger_function_with_trigger_args(self):
-        if self.options['remove_hyphens']:
+        if self.options['remove_symbols']:
             return self.search_function_name + '()'
         return 'tsvector_update_trigger({arguments})'.format(
             arguments=', '.join(
@@ -241,7 +233,7 @@ class DropSearchTriggerSQL(SQLConstruct):
 class SearchManager():
     default_options = {
         'tablename': None,
-        'remove_hyphens': True,
+        'remove_symbols': '-@.',
         'search_trigger_name': '{table}_{column}_trigger',
         'search_index_name': '{table}_{column}_index',
         'search_trigger_function_name': '{table}_{column}_update',
@@ -311,7 +303,7 @@ class SearchManager():
             # This sets up the trigger that keeps the tsvector column up to
             # date.
             if column.type.columns:
-                if self.option(column, 'remove_hyphens'):
+                if self.option(column, 'remove_symbols'):
                     event.listen(
                         table,
                         'after_create',
@@ -353,7 +345,7 @@ def sync_trigger(
     * Updates all rows for given search vector by running a column=column update query for given table.
 
 
-    ::
+    Example::
 
         from sqlalchemy_searchable import sync_trigger
 
@@ -368,10 +360,7 @@ def sync_trigger(
 
     This function is especially useful when working with alembic migrations.
     In the following example we add a content column to article table and then
-    sync the trigger to contain this new column.
-
-
-    ::
+    sync the trigger to contain this new column::
 
         # ... some alembic setup
 

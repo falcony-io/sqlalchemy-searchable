@@ -4,6 +4,13 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.7.0 (2014-11-17)
+^^^^^^^^^^^^^^^^^^
+
+- Replaced remove_hyphens configuration option by more generic remove_symbols configuration option
+- Emails are no longer considered as special tokens by default.
+
+
 0.6.0 (2014-09-21)
 ^^^^^^^^^^^^^^^^^^
 

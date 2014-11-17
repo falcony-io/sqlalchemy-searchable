@@ -76,16 +76,12 @@ Hence the following search queries are essentially the same:
 Emails as search terms
 ^^^^^^^^^^^^^^^^^^^^^^
 
-PostgreSQL tsvectors handle email strings in a way that they don't get split into multiple tsvector terms. SQLAlchemy-Searchable handles email search terms the same way:
+PostgreSQL tsvectors handle email strings in a way that they don't get split into multiple tsvector terms. As of version 0.7 SQLAlchemy-Searchable doesn't handle emails this way by default, rather it splits the email into separate search terms. If you wish to override this behaviour you can use the `remove_symbols` configuration option.
 
 ::
 
-    # single search term used: 'john@fastmonkeys.com'
+    # Tries to match 'john', 'fastmonkeys' and 'com' separately
     query = search(query, u'john@fastmonkeys.com')
-
-    # not a valid email, split into three search terms:
-    # 'john', 'fastmonkeys' and 'com'
-    query = search(query, u'john@@fastmonkeys.com')
 
 
 Internals

@@ -17,7 +17,7 @@ make_searchable()
 
 
 class TestCase(object):
-    remove_hyphens = True
+    remove_symbols = '-@.'
     search_trigger_name = '{table}_{column}_trigger'
     search_index_name = '{table}_{column}_index'
     search_trigger_function_name = '{table}_{column}_update'
@@ -35,7 +35,7 @@ class TestCase(object):
     @property
     def options(self):
         return {
-            'remove_hyphens': self.remove_hyphens,
+            'remove_symbols': self.remove_symbols,
             'search_trigger_name': self.search_trigger_name,
             'search_index_name': self.search_index_name,
             'search_trigger_function_name': self.search_trigger_function_name
