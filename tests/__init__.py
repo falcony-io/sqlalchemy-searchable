@@ -105,13 +105,13 @@ class SchemaTestCase(TestCase):
             WHERE oid IN (
                 SELECT indexrelid
                 FROM pg_index, pg_class
-                WHERE pg_class.relname='textitem'
-                    AND pg_class.oid=pg_index.indrelid
+                WHERE pg_class.relname = 'textitem'
+                    AND pg_class.oid = pg_index.indrelid
                     AND indisunique != 't'
                     AND indisprimary != 't'
             ) ORDER BY relname"""
         ).fetchall()
-        assert self.should_create_indexes == list(map(lambda a: a[0], rows))
+        assert self.should_create_indexes == [row[0] for row in rows]
 
     def test_creates_search_trigger(self):
         rows = self.session.execute(
@@ -122,7 +122,7 @@ class SchemaTestCase(TestCase):
                 ('pg_catalog', 'information_schema')
             ORDER BY trigger_name"""
         ).fetchall()
-        assert self.should_create_triggers == list(map(lambda a: a[0], rows))
+        assert self.should_create_triggers == [row[0] for row in rows]
 
 
 setting_variants = {
