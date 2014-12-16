@@ -5,7 +5,7 @@ from tests import SchemaTestCase
 
 class TestAutomaticallyCreatedSchemaItems(SchemaTestCase):
     should_create_indexes = [
-        u'textitem_search_vector_index',
+        u'ix_textitem_search_vector',
     ]
     should_create_triggers = [
         u'textitem_search_vector_trigger',
@@ -14,7 +14,7 @@ class TestAutomaticallyCreatedSchemaItems(SchemaTestCase):
 
 class TestSearchVectorWithoutColumns(SchemaTestCase):
     should_create_indexes = [
-        u'textitem_search_vector_index',
+        u'ix_textitem_search_vector',
     ]
     should_create_triggers = []
 

@@ -7,8 +7,8 @@ from tests import SchemaTestCase, TestCase
 
 class TestMultipleSearchVectorsPerClass(SchemaTestCase):
     should_create_indexes = [
-        u'textitem_content_vector_index',
-        u'textitem_name_vector_index',
+        u'ix_textitem_content_vector',
+        u'ix_textitem_name_vector',
     ]
     should_create_triggers = [
         u'textitem_content_vector_trigger',
@@ -56,7 +56,7 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
         )
         self.session.commit()
 
-    def test_schoose_vector(self):
+    def test_choose_vector(self):
         query = self.TextItemQuery(self.TextMultiItem, self.session)
         s1 = search(query, 'ipsum', vector=self.TextMultiItem.name_vector)
         assert s1.first().name == 'ipsum'

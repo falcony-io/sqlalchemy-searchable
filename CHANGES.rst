@@ -4,6 +4,13 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.7.1 (2014-12-16)
+^^^^^^^^^^^^^^^^^^
+
+- Changed GIN indexes to table args Index constructs. This means current version of alembic should be able to create these indexes automatically.
+- Changed GIN index naming to adhere to SQLAlchemy index naming conventions
+
+
 0.7.0 (2014-11-17)
 ^^^^^^^^^^^^^^^^^^
 

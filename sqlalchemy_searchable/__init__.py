@@ -8,7 +8,7 @@ from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser
 
 
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 
 
 parser = SearchQueryParser()
@@ -281,11 +281,20 @@ class SearchManager():
             if isinstance(column.type, TSVectorType)
         ]
 
+    def append_index(self, cls, column):
+        if not hasattr(cls, '__table_args__') or cls.__table_args__ is None:
+            cls.__table_args__ = []
+        cls.__table_args__ = list(cls.__table_args__).append(
+            sa.Index(
+                '_'.join(('ix', column.table.name, column.name)),
+                column,
+                postgresql_using='gin'
+            )
+        )
+
     def attach_ddl_listeners(self, mapper, cls):
         columns = self.inspect_columns(cls)
         for column in columns:
-            # We don't want sqlalchemy to know about this column so we add it
-            # externally.
             table = cls.__table__
 
             column_name = '%s_%s' % (table.name, column.name)
@@ -293,12 +302,7 @@ class SearchManager():
             if column_name in self.processed_columns:
                 continue
 
-            # This indexes the tsvector column.
-            event.listen(
-                table,
-                'after_create',
-                self.search_index_ddl(column)
-            )
+            self.append_index(cls, column)
 
             # This sets up the trigger that keeps the tsvector column up to
             # date.
