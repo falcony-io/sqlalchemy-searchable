@@ -342,7 +342,8 @@ def sync_trigger(
     * Drops search function for given table (if it exists)
     * Creates search function for given table
     * Creates search trigger for given table
-    * Updates all rows for given search vector by running a column=column update query for given table.
+    * Updates all rows for given search vector by running a column=column
+      update query for given table.
 
 
     Example::
