@@ -97,7 +97,7 @@ class SQLConstruct(object):
 
     def init_options(self, options=None):
         if not options:
-           options = {}
+            options = {}
         for key, value in SearchManager.default_options.items():
             try:
                 option = self.tsvector_column.type.options[key]
@@ -198,8 +198,9 @@ class CreateSearchTriggerSQL(SQLConstruct):
             .format(
                 search_trigger_name=self.search_trigger_name,
                 table=self.table_name,
-                procedure_ddl=
-                self.search_trigger_function_with_trigger_args
+                procedure_ddl=(
+                    self.search_trigger_function_with_trigger_args
+                )
             )
         )
 
