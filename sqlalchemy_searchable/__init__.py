@@ -44,12 +44,12 @@ class SearchQueryMixin(object):
 
 
 def inspect_search_vectors(entity):
-    search_vectors = []
-    for prop in entity.__mapper__.iterate_properties:
-        if isinstance(prop, sa.orm.ColumnProperty):
-            if isinstance(prop.columns[0].type, TSVectorType):
-                search_vectors.append(getattr(entity, prop.key))
-    return search_vectors
+    return [
+        getattr(entity, key)
+        for key, column
+        in sa.inspect(entity).columns.items()
+        if isinstance(column.type, TSVectorType)
+    ]
 
 
 def search(query, search_query, vector=None, catalog=None):
