@@ -1,17 +1,21 @@
 import re
+from itertools import chain
 from pyparsing import ParseException
 
 import sqlalchemy as sa
 from sqlalchemy import event
+
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser
+from .vectorizers import Vectorizer
 
 
 __version__ = '0.7.1'
 
 
 parser = SearchQueryParser()
+vectorizer = Vectorizer()
 
 
 def parse_search_query(query, parser=parser):
@@ -45,7 +49,7 @@ class SearchQueryMixin(object):
 
 def inspect_search_vectors(entity):
     return [
-        getattr(entity, key)
+        getattr(entity, key).property.columns[0]
         for key, column
         in sa.inspect(entity).columns.items()
         if isinstance(column.type, TSVectorType)
@@ -86,9 +90,16 @@ def quote_identifier(identifier):
 
 
 class SQLConstruct(object):
-    def __init__(self, tsvector_column, indexed_columns=None, options=None):
+    def __init__(
+        self,
+        tsvector_column,
+        conn=None,
+        indexed_columns=None,
+        options=None
+    ):
         self.table = tsvector_column.table
         self.tsvector_column = tsvector_column
+        self.conn = conn
         self.options = self.init_options(options)
         if indexed_columns:
             self.indexed_columns = list(indexed_columns)
@@ -114,13 +125,6 @@ class SQLConstruct(object):
             return '"' + self.table.name + '"'
 
     @property
-    def search_index_name(self):
-        return self.options['search_index_name'].format(
-            table=self.table.name,
-            column=self.tsvector_column.name
-        )
-
-    @property
     def search_function_name(self):
         return self.options['search_trigger_function_name'].format(
             table=self.table.name,
@@ -134,21 +138,38 @@ class SQLConstruct(object):
             column=self.tsvector_column.name
         )
 
-    def format_column(self, column_name):
-        value = "COALESCE(NEW.%s, '')" % column_name
+    def format_column(self, column):
+        value = sa.text('NEW.{column}'.format(column=column.name))
+        try:
+            vectorizer_func = vectorizer[column]
+        except KeyError:
+            pass
+        else:
+            value = vectorizer_func(value)
+        value = sa.func.coalesce(value, sa.text("''"))
+        self.params = value.compile().params
+
         if self.options['remove_symbols']:
-            value = "REGEXP_REPLACE(%s, '[%s]', ' ', 'g')" % (
+            value = sa.func.regexp_replace(
                 value,
-                self.options['remove_symbols']
+                sa.text("'[{0}]'".format(self.options['remove_symbols'])),
+                sa.text("' '"),
+                sa.text("'g'")
             )
-        return "%s, ' '" % value
+        return value
 
     @property
     def search_function_args(self):
-        return 'CONCAT(%s)' % ', '.join(
-            self.format_column(column_name)
+        args = (
+            (
+                self.format_column(getattr(self.table.c, column_name)),
+                sa.text("' '")
+            )
             for column_name in self.indexed_columns
         )
+        compiled = sa.func.concat(*chain(*args)).compile(self.conn)
+        self.params = compiled.params
+        return compiled
 
 
 class CreateSearchFunctionSQL(SQLConstruct):
@@ -205,19 +226,6 @@ class CreateSearchTriggerSQL(SQLConstruct):
         )
 
 
-class CreateSearchIndexSQL(SQLConstruct):
-    def __str__(self):
-        return (
-            "CREATE INDEX {search_index_name} ON {table}"
-            " USING gin({search_vector_name})"
-            .format(
-                table=self.table_name,
-                search_index_name=self.search_index_name,
-                search_vector_name=self.tsvector_column.name
-            )
-        )
-
-
 class DropSearchFunctionSQL(SQLConstruct):
     def __str__(self):
         return 'DROP FUNCTION IF EXISTS %s()' % self.search_function_name
@@ -236,7 +244,6 @@ class SearchManager():
         'tablename': None,
         'remove_symbols': '-@.',
         'search_trigger_name': '{table}_{column}_trigger',
-        'search_index_name': '{table}_{column}_index',
         'search_trigger_function_name': '{table}_{column}_update',
         'catalog': 'pg_catalog.english'
     }
@@ -245,6 +252,7 @@ class SearchManager():
         self.options = self.default_options
         self.options.update(options)
         self.processed_columns = []
+        self.classes = set()
 
     def option(self, column, name):
         try:
@@ -252,16 +260,11 @@ class SearchManager():
         except (AttributeError, KeyError):
             return self.options[name]
 
-    def search_index_ddl(self, column):
-        """
-        Returns the ddl for creating the actual search index.
-
-        :param column: TSVectorType typed SQLAlchemy column object
-        """
-        return DDL(str(CreateSearchIndexSQL(column)))
-
     def search_function_ddl(self, column):
-        return DDL(str(CreateSearchFunctionSQL(column)))
+        def after_create(target, connection, **kw):
+            clause = CreateSearchFunctionSQL(column, conn=connection)
+            connection.execute(str(clause), **clause.params)
+        return after_create
 
     def search_trigger_ddl(self, column):
         """
@@ -293,21 +296,22 @@ class SearchManager():
             )
         )
 
-    def attach_ddl_listeners(self, mapper, cls):
+    def process_mapper(self, mapper, cls):
         columns = self.inspect_columns(cls)
         for column in columns:
-            table = cls.__table__
-
-            column_name = '%s_%s' % (table.name, column.name)
-
-            if column_name in self.processed_columns:
+            if column in self.processed_columns:
                 continue
 
             self.append_index(cls, column)
 
+            self.processed_columns.append(column)
+
+    def attach_ddl_listeners(self):
+        for column in self.processed_columns:
             # This sets up the trigger that keeps the tsvector column up to
             # date.
             if column.type.columns:
+                table = column.table
                 if self.option(column, 'remove_symbols'):
                     event.listen(
                         table,
@@ -324,8 +328,6 @@ class SearchManager():
                     'after_create',
                     self.search_trigger_ddl(column)
                 )
-
-            self.processed_columns.append(column_name)
 
 
 search_manager = SearchManager()
@@ -424,5 +426,8 @@ def make_searchable(
 ):
     manager.options.update(options)
     event.listen(
-        mapper, 'instrument_class', manager.attach_ddl_listeners
+        mapper, 'instrument_class', manager.process_mapper
+    )
+    event.listen(
+        mapper, 'after_configured', manager.attach_ddl_listeners
     )

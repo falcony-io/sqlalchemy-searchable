@@ -9,7 +9,7 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils.types import TSVectorType
 from sqlalchemy_searchable import (
-    make_searchable, SearchQueryMixin, search_manager
+    make_searchable, SearchQueryMixin, search_manager, vectorizer
 )
 
 
@@ -26,10 +26,13 @@ class TestCase(object):
         self.engine = create_engine(
             'postgres://postgres@localhost/sqlalchemy_searchable_test'
         )
+        self.engine.execute('CREATE EXTENSION IF NOT EXISTS hstore')
+        # self.engine.echo = True
         self.Base = declarative_base()
         self.create_models()
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
+        sa.orm.configure_mappers()
         self.create_tables()
 
     @property
@@ -52,7 +55,7 @@ class TestCase(object):
 
         self.session.expunge_all()
         self.session.close_all()
-        #self.session.remove()
+        vectorizer.clear()
         self.drop_tables()
         self.engine.dispose()
 

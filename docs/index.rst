@@ -11,6 +11,7 @@ SQLAlchemy-Searchable provides `full text search`_ capabilities for SQLAlchemy_ 
    installation
    search_query_parser
    configuration
+   vectorizers
    alembic_migrations
    integrations
 
