@@ -9,11 +9,7 @@ Global configuration options
 
 The following configuration options can be defined globally by passing them to make_searchable function.
 
-* search_vector_name - name of the search vector column, default: search_vector
-
 * search_trigger_name - name of the search database trigger, default: {table}_search_update
-
-* search_index_name - name of the search index, default: {table}_search_index
 
 * search_trigger_function_name - the name for the database search vector updating function. This configuration option is only used if remove_hyphens is set as `True` otherwise the builtin postgresql `tsvector_update_trigger` is used for updating search vectors.
 
