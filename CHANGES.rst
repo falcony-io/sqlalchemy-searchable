@@ -3,6 +3,11 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+0.8.0 (2015-01-xx)
+^^^^^^^^^^^^^^^^^^
+
+- Made search function support for queries without entity_zero
+
 
 0.7.1 (2014-12-16)
 ^^^^^^^^^^^^^^^^^^

@@ -71,9 +71,8 @@ def search(query, search_query, vector=None, catalog=None):
     if not search_query:
         return query
 
-    entity = query._entities[0].entity_zero.class_
-
-    if not vector:
+    if vector is None:
+        entity = query._entities[0].entity_zero.class_
         search_vectors = inspect_search_vectors(entity)
         vector = search_vectors[0]
 
