@@ -64,6 +64,10 @@ class SearchQueryMixinTestCase(TestCase):
         query = query.search(u'orrimorri', catalog='finnish')
         assert "to_tsquery(:to_tsquery_1, :to_tsquery_2)" in str(query)
 
+    def test_search_specific_columns(self):
+        query = search(self.session.query(self.TextItem.id), 'admin')
+        assert query.count() == 1
+
 
 create_test_cases(SearchQueryMixinTestCase)
 
