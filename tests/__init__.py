@@ -19,7 +19,6 @@ make_searchable()
 class TestCase(object):
     remove_symbols = '-@.'
     search_trigger_name = '{table}_{column}_trigger'
-    search_index_name = '{table}_{column}_index'
     search_trigger_function_name = '{table}_{column}_update'
 
     def setup_method(self, method):
@@ -40,7 +39,6 @@ class TestCase(object):
         return {
             'remove_symbols': self.remove_symbols,
             'search_trigger_name': self.search_trigger_name,
-            'search_index_name': self.search_index_name,
             'search_trigger_function_name': self.search_trigger_function_name
         }
 
@@ -136,10 +134,6 @@ setting_variants = {
     'search_trigger_name': [
         '{table}_{column}_trigger',
         '{table}_{column}_trg'
-    ],
-    'search_index_name': [
-        '{table}_{column}_index',
-        '{table}_{column}_idx',
     ],
     'search_trigger_function_name': [
         '{table}_{column}_update_trigger',

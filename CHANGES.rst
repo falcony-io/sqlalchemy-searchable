@@ -3,10 +3,14 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
-0.8.0 (2015-01-xx)
+0.8.0 (2015-01-03)
 ^^^^^^^^^^^^^^^^^^
 
 - Made search function support for queries without entity_zero
+- Changed catalog configuration option name to regconfig to be compatible with the PostgreSQL and SQLAlchemy naming
+- Added custom type and column vectorizers
+- SQLAlchemy requirement updated to 0.9.0
+- SQLAlchemy-Utils requirement updated to 0.29.0
 
 
 0.7.1 (2014-12-16)

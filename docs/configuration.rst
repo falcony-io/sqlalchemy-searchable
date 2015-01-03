@@ -13,7 +13,7 @@ The following configuration options can be defined globally by passing them to m
 
 * search_trigger_function_name - the name for the database search vector updating function. This configuration option is only used if remove_hyphens is set as `True` otherwise the builtin postgresql `tsvector_update_trigger` is used for updating search vectors.
 
-* catalog - postgresql catalog to be used, default: pg_catalog.english
+* regconfig - postgresql regconfig to be used, default: pg_catalog.english
 
 * remove_symbols - String indicating all symbols that should be removed and converted to emptry strings in each search vectorized column. By default this is `-@.`, meaning all `-`, `@` and `.` will be converted to empty strings.
 
@@ -23,14 +23,14 @@ Before version 0.7.0 this configuration option was known as 'remove_hyphens' and
 Example ::
 
 
-    make_searchable(options={'catalog': 'pg_catalog.finnish'})
+    make_searchable(options={'regconfig': 'pg_catalog.finnish'})
 
 
 Changing catalog for search vector
 ----------------------------------
 
 
-In the following example we use Finnish catalog instead of the default English one.
+In the following example we use Finnish regconfig instead of the default English one.
 ::
 
 
@@ -39,7 +39,7 @@ In the following example we use Finnish catalog instead of the default English o
 
         name = sa.Column(sa.Unicode(255))
 
-        search_vector = TSVectorType('name', catalog='pg_catalog.finnish')
+        search_vector = TSVectorType('name', regconfig='pg_catalog.finnish')
 
 
 Multiple search vectors per class
@@ -117,27 +117,18 @@ Now consider a situation where we want to find all articles, where either articl
 
 
     from sqlalchemy_searchable import parse_search_query
-    from sqlalchemy_utils.expressions import (
-        tsvector_match, tsvector_concat, to_tsquery
-    )
+
 
     search_query = u'matrix'
 
-    combined_search_vector = tsvector_concat(
-        Article.search_vector,
-        Category.search_vector
-    )
+    combined_search_vector = Article.search_vector | Category.search_vector
 
     articles = (
         session.query(Article)
         .join(Category)
         .filter(
-            tsvector_match(
-                combined_search_vector,
-                to_tsquery(
-                    'simple',
-                    parse_search_query(search_query)
-                ),
+            combined_search_vector.match(
+                parse_search_query(search_query)
             )
         )
     )
@@ -148,7 +139,8 @@ This query becomes a little more complex when using left joins. Then you have to
 ::
 
 
-    combined_search_vector = tsvector_concat(
-        Article.search_vector,
+    combined_search_vector = (
+        Article.search_vector
+        |
         sa.func.coalesce(Category.search_vector, u'')
     )

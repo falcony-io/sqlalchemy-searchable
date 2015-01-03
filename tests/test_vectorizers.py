@@ -16,7 +16,7 @@ class TestTypeVectorizers(TestCase):
             name = sa.Column(HSTORE)
 
             search_vector = sa.Column(
-                TSVectorType('name', 'content', catalog='simple')
+                TSVectorType('name', 'content', regconfig='simple')
             )
 
             content = sa.Column(sa.UnicodeText)
@@ -52,7 +52,7 @@ class TestColumnVectorizer(TestCase):
             name = sa.Column(HSTORE)
 
             search_vector = sa.Column(
-                TSVectorType('name', 'content', catalog='simple')
+                TSVectorType('name', 'content', regconfig='simple')
             )
 
             content = sa.Column(sa.String)

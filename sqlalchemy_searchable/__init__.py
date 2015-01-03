@@ -38,13 +38,13 @@ def parse_search_query(query, parser=parser):
 
 
 class SearchQueryMixin(object):
-    def search(self, search_query, catalog=None):
+    def search(self, search_query, regconfig=None):
         """
         Search given query with full text search.
 
         :param search_query: the search query
         """
-        return search(self, search_query, catalog=catalog)
+        return search(self, search_query, regconfig=regconfig)
 
 
 def inspect_search_vectors(entity):
@@ -56,13 +56,13 @@ def inspect_search_vectors(entity):
     ]
 
 
-def search(query, search_query, vector=None, catalog=None):
+def search(query, search_query, vector=None, regconfig=None):
     """
     Search given query with full text search.
 
     :param search_query: the search query
     :param vector: search vector to use
-    :param catalog: postgresql catalog to be used
+    :param regconfig: postgresql regconfig to be used
     """
     if not search_query:
         return query
@@ -76,9 +76,11 @@ def search(query, search_query, vector=None, catalog=None):
         search_vectors = inspect_search_vectors(entity)
         vector = search_vectors[0]
 
-    query = query.filter(
-        vector.match_tsquery(search_query, catalog=catalog)
-    )
+    kwargs = {}
+    if regconfig is not None:
+        kwargs['postgresql_regconfig'] = regconfig
+
+    query = query.filter(vector.match(search_query, **kwargs))
     return query.params(term=search_query)
 
 
@@ -188,7 +190,7 @@ class CreateSearchFunctionSQL(SQLConstruct):
             search_trigger_function_name=self.search_function_name,
             search_vector_name=self.tsvector_column.name,
             arguments="'%s', %s" % (
-                self.options['catalog'],
+                self.options['regconfig'],
                 self.search_function_args
             )
         )
@@ -203,7 +205,7 @@ class CreateSearchTriggerSQL(SQLConstruct):
             arguments=', '.join(
                 [
                     self.tsvector_column.name,
-                    "'%s'" % self.options['catalog']
+                    "'%s'" % self.options['regconfig']
                 ] +
                 self.indexed_columns
             )
@@ -240,11 +242,10 @@ class DropSearchTriggerSQL(SQLConstruct):
 
 class SearchManager():
     default_options = {
-        'tablename': None,
         'remove_symbols': '-@.',
         'search_trigger_name': '{table}_{column}_trigger',
         'search_trigger_function_name': '{table}_{column}_update',
-        'catalog': 'pg_catalog.english'
+        'regconfig': 'pg_catalog.english'
     }
 
     def __init__(self, options={}):

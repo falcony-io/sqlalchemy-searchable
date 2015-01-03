@@ -59,10 +59,12 @@ class SearchQueryMixinTestCase(TestCase):
             self.TextItem, self.session
         ).search('someone@example.com').count()
 
-    def test_supports_catalog_parameter(self):
+    def test_supports_regconfig_parameter(self):
         query = self.TextItemQuery(self.TextItem, self.session)
-        query = query.search(u'orrimorri', catalog='finnish')
-        assert "to_tsquery(:to_tsquery_1, :to_tsquery_2)" in str(query)
+        query = query.search(u'orrimorri', regconfig='finnish')
+        assert "to_tsquery('finnish', %(search_vector_1)s)" in str(
+            query.statement.compile(self.session.bind)
+        )
 
     def test_search_specific_columns(self):
         query = search(self.session.query(self.TextItem.id), 'admin')
@@ -70,16 +72,6 @@ class SearchQueryMixinTestCase(TestCase):
 
 
 create_test_cases(SearchQueryMixinTestCase)
-
-
-class TestSearchFunction(TestCase):
-    def test_supports_session_queries(self):
-        query = self.session.query(self.Order)
-        assert (
-            '("order".search_vector) @@ to_tsquery(:to_tsquery_1)'
-            in
-            str(search(query, 'something'))
-        )
 
 
 class TestSearchableInheritance(TestCase):
