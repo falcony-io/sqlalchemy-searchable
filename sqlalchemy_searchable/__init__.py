@@ -252,6 +252,7 @@ class SearchManager():
         self.options = self.default_options
         self.options.update(options)
         self.processed_columns = []
+        self.attached_columns = []
         self.classes = set()
 
     def option(self, column, name):
@@ -310,7 +311,7 @@ class SearchManager():
         for column in self.processed_columns:
             # This sets up the trigger that keeps the tsvector column up to
             # date.
-            if column.type.columns:
+            if column.type.columns and column not in self.attached_columns:
                 table = column.table
                 if self.option(column, 'remove_symbols'):
                     event.listen(
@@ -328,6 +329,7 @@ class SearchManager():
                     'after_create',
                     self.search_trigger_ddl(column)
                 )
+                self.attached_columns.append(column)
 
 
 search_manager = SearchManager()
