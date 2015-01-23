@@ -5,9 +5,11 @@ from tests import SchemaTestCase
 
 class TestAutomaticallyCreatedSchemaItems(SchemaTestCase):
     should_create_indexes = [
+        u'ix_textitem_content_search_vector',
         u'ix_textitem_search_vector',
     ]
     should_create_triggers = [
+        u'textitem_content_search_vector_trigger',
         u'textitem_search_vector_trigger',
     ]
 

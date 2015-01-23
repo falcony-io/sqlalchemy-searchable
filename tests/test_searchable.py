@@ -24,6 +24,12 @@ class SearchQueryMixinTestCase(TestCase):
                 content=u'this is the home page of someone@example.com'
             )
         )
+        self.session.add(
+            self.TextItem(
+                name=u'not a content',
+                content=u'not a name'
+            )
+        )
         self.session.commit()
 
     def test_searches_through_all_fulltext_indexed_fields(self):
@@ -35,14 +41,14 @@ class SearchQueryMixinTestCase(TestCase):
     def test_search_supports_term_splitting(self):
         assert (
             self.TextItemQuery(self.TextItem, self.session)
-            .search('content').count() == 2
+            .search('content').count() == 3
         )
 
     def test_term_splitting_supports_multiple_spaces(self):
         query = self.TextItemQuery(self.TextItem, self.session)
         assert query.search('content  some').first().name == u'index'
         assert query.search('content   some').first().name == u'index'
-        assert query.search('  ').count() == 3
+        assert query.search('  ').count() == 4
 
     def test_search_removes_illegal_characters(self):
         assert self.TextItemQuery(
@@ -65,6 +71,12 @@ class SearchQueryMixinTestCase(TestCase):
         assert "to_tsquery('finnish', %(search_vector_1)s)" in str(
             query.statement.compile(self.session.bind)
         )
+
+    def test_supports_vector_parameter(self):
+        vector = self.TextItem.content_search_vector
+        query = self.TextItemQuery(self.TextItem, self.session)
+        query = query.search('content', vector=vector)
+        assert query.count() == 2
 
     def test_search_specific_columns(self):
         query = search(self.session.query(self.TextItem.id), 'admin')

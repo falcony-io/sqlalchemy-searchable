@@ -38,13 +38,13 @@ def parse_search_query(query, parser=parser):
 
 
 class SearchQueryMixin(object):
-    def search(self, search_query, regconfig=None):
+    def search(self, search_query, vector=None, regconfig=None):
         """
         Search given query with full text search.
 
         :param search_query: the search query
         """
-        return search(self, search_query, regconfig=regconfig)
+        return search(self, search_query, vector=vector, regconfig=regconfig)
 
 
 def inspect_search_vectors(entity):
