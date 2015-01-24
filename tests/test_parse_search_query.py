@@ -123,3 +123,13 @@ class TestParseSearchQuery(object):
         assert parse_search_query("'star") == (
             'star:*'
         )
+
+    def test_or_within_a_token(self):
+        assert parse_search_query('organs') == (
+            'organs:*'
+        )
+
+    def test_or_within_a_token_preceded_by_space(self):
+        assert parse_search_query('star organs') == (
+            'star:* & organs:*'
+        )
