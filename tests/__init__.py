@@ -71,6 +71,9 @@ class TestCase(object):
             search_vector = sa.Column(
                 TSVectorType('name', 'content', **self.options)
             )
+            content_search_vector = sa.Column(
+                TSVectorType('content', **self.options)
+            )
 
             content = sa.Column(sa.UnicodeText)
 
