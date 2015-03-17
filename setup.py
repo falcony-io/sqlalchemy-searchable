@@ -24,6 +24,7 @@ def get_version():
 extras_require = {
     'test': [
         'pytest>=2.2.3',
+        'psycopg2>=2.4.6',
     ],
 }
 
@@ -46,7 +47,6 @@ setup(
     install_requires=[
         'pyparsing>=2.0.1',
         'SQLAlchemy>=0.9.0',
-        'psycopg2>=2.4.6',
         'SQLAlchemy-Utils>=0.29.0',
         'validators>=0.3.0',
     ],
