@@ -26,12 +26,6 @@ class TestSearchQueryParser(object):
             'star:* & wars:* & luke:*'
         )
 
-    def test_and(self):
-        assert self.parser.parse('star and wars') == 'star:* & wars:*'
-
-    def test_multiple_and(self):
-        assert self.parser.parse('star and and wars') == 'star:* & wars:*'
-
     def test_parenthesis(self):
         assert self.parser.parse('(star wars) or luke') == (
             '(star:* & wars:*) | luke:*'
@@ -39,7 +33,7 @@ class TestSearchQueryParser(object):
 
     def test_or_and(self):
         assert (
-            self.parser.parse('star or wars and luke or solo') ==
+            self.parser.parse('star or wars   luke or solo') ==
             'star:* | wars:* & luke:* | solo:*'
         )
 

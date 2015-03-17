@@ -3,6 +3,14 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+
+0.9.0 (2015-03-xx)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed and / or parsing where search word started with keyword, #22
+- Removed 'and' as keyword from search query parser (spaces are always considered as and keywords)
+
+
 0.8.0 (2015-01-03)
 ^^^^^^^^^^^^^^^^^^
 

@@ -11,7 +11,6 @@ from pyparsing import (
     Group,
     Keyword,
     Literal,
-    oneOf,
     OneOrMore,
     Suppress,
     Word,
@@ -87,23 +86,28 @@ class SearchQueryParser(object):
             Suppress(Literal('-')) + not_
         ).setResultsName('not') | parenthesis)
 
+        keyword_or = Keyword('or', caseless=True)
+
         and_ = Forward()
+
         and_ <<= (
             Group(
                 not_ +
-                OneOrMore(Suppress(Keyword('and', caseless=True))) +
+                OneOrMore(Suppress(Keyword(' '))) +
                 and_
             ).setResultsName('and') |
             Group(
                 not_ +
-                OneOrMore(~oneOf('and or') + and_)
+                OneOrMore(
+                    ~keyword_or + and_
+                )
             ).setResultsName('and') |
             not_
         )
 
         or_ <<= (
             Group(
-                and_ + OneOrMore(Suppress(Keyword('or', caseless=True))) + or_
+                and_ + OneOrMore(Suppress(keyword_or)) + or_
             ).setResultsName('or') |
             and_
         )

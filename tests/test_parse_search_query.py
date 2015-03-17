@@ -69,10 +69,7 @@ class TestParseSearchQuery(object):
         )
 
     def test_and(self):
-        assert parse_search_query('star and wars') == 'star:* & wars:*'
-
-    def test_multiple_and(self):
-        assert parse_search_query('star and and wars') == 'star:* & wars:*'
+        assert parse_search_query('star wars') == 'star:* & wars:*'
 
     def test_parenthesis(self):
         assert parse_search_query('(star wars) or luke') == (
@@ -81,7 +78,7 @@ class TestParseSearchQuery(object):
 
     def test_or_and(self):
         assert (
-            parse_search_query('star or wars and luke or solo') ==
+            parse_search_query('star or wars luke or solo') ==
             'star:* | wars:* & luke:* | solo:*'
         )
 
@@ -132,4 +129,9 @@ class TestParseSearchQuery(object):
     def test_or_within_a_token_preceded_by_space(self):
         assert parse_search_query('star organs') == (
             'star:* & organs:*'
+        )
+
+    def test_and_within_a_token_preceded_by_space(self):
+        assert parse_search_query('star andromeda') == (
+            'star:* & andromeda:*'
         )
