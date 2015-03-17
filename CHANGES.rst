@@ -9,6 +9,7 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 
 - Fixed and / or parsing where search word started with keyword, #22
 - Removed 'and' as keyword from search query parser (spaces are always considered as and keywords)
+- Added PyPy support
 
 
 0.8.0 (2015-01-03)

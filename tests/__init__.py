@@ -12,6 +12,16 @@ from sqlalchemy_searchable import (
     make_searchable, SearchQueryMixin, search_manager, vectorizer
 )
 
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
+
+
+if __pypy__:
+    from psycopg2cffi import compat
+    compat.register()
+
 
 make_searchable()
 

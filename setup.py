@@ -9,6 +9,11 @@ import os
 import re
 from setuptools import setup
 
+try:
+    import __pypy__
+except ImportError:
+    __pypy__ = None
+
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,7 +29,7 @@ def get_version():
 extras_require = {
     'test': [
         'pytest>=2.2.3',
-        'psycopg2>=2.4.6',
+        'psycopg2cffi>=2.6.1' if __pypy__ else 'psycopg2>=2.4.6',
     ],
 }
 
