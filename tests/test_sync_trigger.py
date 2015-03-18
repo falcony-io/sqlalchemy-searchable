@@ -1,6 +1,5 @@
 from sqlalchemy_searchable import sync_trigger
-
-from tests import TestCase, create_test_cases
+from tests import create_test_cases, TestCase
 
 
 class SyncTriggerTestCase(TestCase):

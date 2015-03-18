@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy_searchable import search
-from tests import TestCase, create_test_cases
+from tests import create_test_cases, TestCase
 
 
 class SearchQueryMixinTestCase(TestCase):

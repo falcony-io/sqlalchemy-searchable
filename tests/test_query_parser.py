@@ -1,5 +1,6 @@
-from pytest import raises
 from pyparsing import ParseException
+from pytest import raises
+
 from sqlalchemy_searchable.parser import SearchQueryParser
 
 

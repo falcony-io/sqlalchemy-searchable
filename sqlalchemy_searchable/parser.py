@@ -5,6 +5,7 @@ Influenced by http://pyparsing.wikispaces.com/file/view/searchparser.py
 """
 import re
 import unicodedata
+
 import six
 from pyparsing import (
     Forward,
@@ -13,7 +14,7 @@ from pyparsing import (
     Literal,
     OneOrMore,
     Suppress,
-    Word,
+    Word
 )
 from validators import email
 
