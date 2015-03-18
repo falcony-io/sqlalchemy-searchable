@@ -1,8 +1,9 @@
 import sqlalchemy as sa
 from pytest import raises
 from sqlalchemy.dialects.postgresql import HSTORE
-from sqlalchemy_searchable import vectorizer
 from sqlalchemy_utils import TSVectorType
+
+from sqlalchemy_searchable import vectorizer
 from tests import TestCase
 
 

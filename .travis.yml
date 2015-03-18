@@ -12,4 +12,6 @@ python:
 install:
   - pip install -e ".[test]"
 script:
+  - isort --recursive --diff sqlalchemy_searchable tests && isort --recursive --check-only sqlalchemy_searchable tests
+  - flake8 sqlalchemy_searchable tests
   - py.test

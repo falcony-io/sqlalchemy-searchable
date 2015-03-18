@@ -99,8 +99,8 @@ from functools import wraps
 from inspect import isclass
 
 import sqlalchemy as sa
-from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.sql.type_api import TypeEngine
 
 
 class Vectorizer(object):

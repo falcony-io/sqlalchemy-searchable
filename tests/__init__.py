@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
-import itertools as it
 import inspect
+import itertools as it
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils.types import TSVectorType
+
 from sqlalchemy_searchable import (
-    make_searchable, SearchQueryMixin, search_manager, vectorizer
+    make_searchable,
+    search_manager,
+    SearchQueryMixin,
+    vectorizer
 )
 
 try:

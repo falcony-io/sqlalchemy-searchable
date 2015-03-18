@@ -30,6 +30,8 @@ extras_require = {
     'test': [
         'pytest>=2.2.3',
         'psycopg2cffi>=2.6.1' if __pypy__ else 'psycopg2>=2.4.6',
+        'flake8>=2.4.0',
+        'isort>=3.9.6'
     ],
 }
 

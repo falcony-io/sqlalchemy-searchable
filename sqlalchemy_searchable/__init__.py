@@ -1,15 +1,14 @@
 import re
 from itertools import chain
-from pyparsing import ParseException
 
 import sqlalchemy as sa
+from pyparsing import ParseException
 from sqlalchemy import event
-
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
+
 from .parser import SearchQueryParser
 from .vectorizers import Vectorizer
-
 
 __version__ = '0.8.0'
 

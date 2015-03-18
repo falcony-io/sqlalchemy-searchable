@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy_utils import TSVectorType
-from sqlalchemy_searchable import search
 
+from sqlalchemy_searchable import search
 from tests import SchemaTestCase, TestCase
 
 
