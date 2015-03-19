@@ -105,6 +105,7 @@ class SQLConstruct(object):
             self.indexed_columns = list(indexed_columns)
         else:
             self.indexed_columns = list(self.tsvector_column.type.columns)
+        self.params = {}
 
     def init_options(self, options=None):
         if not options:
@@ -147,7 +148,6 @@ class SQLConstruct(object):
         else:
             value = vectorizer_func(value)
         value = sa.func.coalesce(value, sa.text("''"))
-        self.params = value.compile().params
 
         if self.options['remove_symbols']:
             value = sa.func.regexp_replace(
@@ -337,6 +337,7 @@ def sync_trigger(
     table_name,
     tsvector_column,
     indexed_columns,
+    metadata=None,
     options=None
 ):
     """
@@ -367,9 +368,8 @@ def sync_trigger(
 
     This function is especially useful when working with alembic migrations.
     In the following example we add a content column to article table and then
-    sync the trigger to contain this new column::
+    sync the trigger to contain this new column. ::
 
-        # ... some alembic setup
 
         from alembic import op
         from sqlalchemy_searchable import sync_trigger
@@ -384,25 +384,65 @@ def sync_trigger(
         # ... same for downgrade
 
 
+    If you are using vectorizers you need to initialize them in your migration
+    file and pass them to this function. ::
+
+
+        import sqlalchemy as sa
+        from alembic import op
+        from sqlalchemy.dialects.postgresql import HSTORE
+        from sqlalchemy_searchable import sync_trigger, vectorizer
+
+
+        def upgrade():
+            vectorizer.clear()
+
+            conn = op.get_bind()
+            op.add_column('article', sa.Column('name_translations', sa.Text))
+
+            metadata = sa.MetaData(bind=conn)
+            articles = sa.Table('article', metadata, autoload=True)
+
+            @vectorizer(article.c.content)
+            def hstore_vectorizer(column):
+                return sa.cast(sa.func.avals(column), sa.Text)
+
+            op.add_column('article', sa.Column('name_translations', sa.Text))
+            sync_trigger(
+                conn,
+                'article',
+                'search_vector',
+                ['name_translations', 'content'],
+                metadata=metadata
+            )
+
+        # ... same for downgrade
+
     :param conn: SQLAlchemy Connection object
     :param table_name: name of the table to apply search trigger syncing
     :param tsvector_column:
         TSVector typed column which is used as the search index column
     :param indexed_columns:
         Full text indexed column names as a list
+    :param metadata:
+        Optional SQLAlchemy metadata object that is being used for autoloaded
+        Table. If None is given then new MetaData object is initialized within
+        this function.
     :param options: Dictionary of configuration options
     """
-    meta = sa.MetaData()
+    if metadata is None:
+        metadata = sa.MetaData()
     table = sa.Table(
         table_name,
-        meta,
+        metadata,
         autoload=True,
         autoload_with=conn
     )
     params = dict(
         tsvector_column=getattr(table.c, tsvector_column),
         indexed_columns=indexed_columns,
-        options=options
+        options=options,
+        conn=conn
     )
     classes = [
         DropSearchTriggerSQL,
@@ -411,7 +451,8 @@ def sync_trigger(
         CreateSearchTriggerSQL,
     ]
     for class_ in classes:
-        conn.execute(str(class_(**params)))
+        sql = class_(**params)
+        conn.execute(str(sql), **sql.params)
     update_sql = table.update().values(
         {indexed_columns[0]: sa.text(indexed_columns[0])}
     )

@@ -1,4 +1,6 @@
-from sqlalchemy_searchable import sync_trigger
+import sqlalchemy as sa
+
+from sqlalchemy_searchable import sync_trigger, vectorizer
 from tests import create_test_cases, TestCase
 
 
@@ -48,6 +50,33 @@ class SyncTriggerTestCase(TestCase):
         sync_trigger(conn, 'article', 'search_vector', ['content'])
         vector = conn.execute('SELECT search_vector FROM article').scalar()
         assert vector == "'content':2"
+
+    def test_custom_vectorizers(self):
+        articles = sa.Table(
+            'article',
+            self.Base.metadata,
+            autoload=True,
+            autoload_with=self.session.bind
+        )
+
+        @vectorizer(articles.c.content)
+        def vectorize_content(column):
+            return sa.func.replace(column, 'bad', 'good')
+
+        conn = self.session.bind
+        sync_trigger(
+            conn,
+            'article',
+            'search_vector',
+            ['name', 'content'],
+            metadata=self.Base.metadata
+        )
+        conn.execute(
+            '''INSERT INTO article (name, content)
+            VALUES ('some name', 'some bad content')'''
+        )
+        vector = conn.execute('SELECT search_vector FROM article').scalar()
+        assert vector == "'content':5 'good':4 'name':2"
 
 
 create_test_cases(SyncTriggerTestCase)
