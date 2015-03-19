@@ -4,7 +4,7 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
-0.9.0 (2015-03-xx)
+0.9.0 (2015-03-19)
 ^^^^^^^^^^^^^^^^^^
 
 - Added PyPy support
