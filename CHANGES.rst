@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.9.1 (2015-03-25)
+^^^^^^^^^^^^^^^^^^
+
+- Added sort param to search function for ordering search results by relevance
+
+
 0.9.0 (2015-03-19)
 ^^^^^^^^^^^^^^^^^^
 
