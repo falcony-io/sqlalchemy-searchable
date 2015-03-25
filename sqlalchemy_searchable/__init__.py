@@ -37,13 +37,22 @@ def parse_search_query(query, parser=parser):
 
 
 class SearchQueryMixin(object):
-    def search(self, search_query, vector=None, regconfig=None):
+    def search(self, search_query, vector=None, regconfig=None, sort=False):
         """
         Search given query with full text search.
 
         :param search_query: the search query
+        :param vector: search vector to use
+        :param regconfig: postgresql regconfig to be used
+        :param sort: order results by relevance (quality of hit)
         """
-        return search(self, search_query, vector=vector, regconfig=regconfig)
+        return search(
+            self,
+            search_query,
+            vector=vector,
+            regconfig=regconfig,
+            sort=sort
+        )
 
 
 def inspect_search_vectors(entity):
@@ -82,10 +91,15 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
 
     query = query.filter(vector.match(search_query, **kwargs))
     if sort:
-        query = query.order_by(sa.desc(sa.func.ts_rank_cd(vector, 
-                                                          sa.func.to_tsquery
-                                                              (search_query))))
-        
+        query = query.order_by(
+            sa.desc(
+                sa.func.ts_rank_cd(
+                    vector,
+                    sa.func.to_tsquery(search_query)
+                )
+            )
+        )
+
     return query.params(term=search_query)
 
 
