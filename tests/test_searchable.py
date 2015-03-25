@@ -82,6 +82,13 @@ class SearchQueryMixinTestCase(TestCase):
         query = search(self.session.query(self.TextItem.id), 'admin')
         assert query.count() == 1
 
+    def test_sorted_search_results(self):
+        query = self.TextItemQuery(self.TextItem, self.session)
+        unsorted_results = query.search('content some').all()
+        sorted_results = query.search('content some', sort=True).all()
+        assert sorted(unsorted_results) == sorted(sorted_results)
+        assert sorted_results != unsorted_results
+
 
 create_test_cases(SearchQueryMixinTestCase)
 

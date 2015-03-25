@@ -72,3 +72,10 @@ After we've created the articles, we can search trhough them.
 
     print query.first().name
     # First article
+
+Optionally specify ``sort=True`` to get results in order of relevance (ts_rank_cd_)::
+
+    query = search(query, 'first', sort=True)
+
+.. _ts_rank_cd: http://www.postgresql.org/docs/devel/static/textsearch-controls.html#TEXTSEARCH-RANKING
+
