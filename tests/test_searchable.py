@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import sqlalchemy as sa
+
 from sqlalchemy_searchable import search
 from tests import create_test_cases, TestCase
 
@@ -81,6 +83,15 @@ class SearchQueryMixinTestCase(TestCase):
     def test_search_specific_columns(self):
         query = search(self.session.query(self.TextItem.id), 'admin')
         assert query.count() == 1
+
+    def test_sorted_search_results(self):
+        query = self.TextItemQuery(self.TextItem, self.session)
+        unsorted_results = query.search('content some').order_by(
+            sa.desc('id')
+        ).all()
+        sorted_results = query.search('content some', sort=True).all()
+        assert sorted(unsorted_results) == sorted(sorted_results)
+        assert sorted_results != unsorted_results
 
 
 create_test_cases(SearchQueryMixinTestCase)
