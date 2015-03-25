@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import sqlalchemy as sa
-
 from sqlalchemy_searchable import search
 from tests import create_test_cases, TestCase
 
@@ -8,30 +6,25 @@ from tests import create_test_cases, TestCase
 class SearchQueryMixinTestCase(TestCase):
     def setup_method(self, method):
         TestCase.setup_method(self, method)
-        self.session.add(
+        self.items = [
             self.TextItem(
                 name=u'index',
                 content=u'some content'
-            )
-        )
-        self.session.add(
+            ),
             self.TextItem(
                 name=u'admin',
                 content=u'admin content'
-            )
-        )
-        self.session.add(
+            ),
             self.TextItem(
                 name=u'home',
                 content=u'this is the home page of someone@example.com'
-            )
-        )
-        self.session.add(
+            ),
             self.TextItem(
-                name=u'not a content',
+                name=u'not a some content',
                 content=u'not a name'
             )
-        )
+        ]
+        self.session.add_all(self.items)
         self.session.commit()
 
     def test_searches_through_all_fulltext_indexed_fields(self):
@@ -86,12 +79,8 @@ class SearchQueryMixinTestCase(TestCase):
 
     def test_sorted_search_results(self):
         query = self.TextItemQuery(self.TextItem, self.session)
-        unsorted_results = query.search('content some').order_by(
-            sa.desc('id')
-        ).all()
-        sorted_results = query.search('content some', sort=True).all()
-        assert sorted(unsorted_results) == sorted(sorted_results)
-        assert sorted_results != unsorted_results
+        sorted_results = query.search('some content', sort=True).all()
+        assert sorted_results == self.items[0:2] + [self.items[3]]
 
 
 create_test_cases(SearchQueryMixinTestCase)
