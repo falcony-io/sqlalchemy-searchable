@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.9.2 (2015-04-01)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed listener configuration (#31)
+
+
 0.9.1 (2015-03-25)
 ^^^^^^^^^^^^^^^^^^
 

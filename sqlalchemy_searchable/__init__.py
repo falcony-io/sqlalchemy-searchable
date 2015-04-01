@@ -10,7 +10,7 @@ from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser
 from .vectorizers import Vectorizer
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 
 parser = SearchQueryParser()
@@ -272,6 +272,7 @@ class SearchManager():
         self.options.update(options)
         self.processed_columns = []
         self.classes = set()
+        self.listeners = []
 
     def option(self, column, name):
         try:
@@ -325,28 +326,40 @@ class SearchManager():
 
             self.processed_columns.append(column)
 
+    def add_listener(self, args):
+        self.listeners.append(args)
+        event.listen(*args)
+
     def attach_ddl_listeners(self):
+        # Remove all previously added listeners, so that same listener don't
+        # get added twice in situations where class configuration happens in
+        # multiple phases (issue #31).
+        for listener in self.listeners:
+            event.remove(*listener)
+        self.listeners = []
+
         for column in self.processed_columns:
             # This sets up the trigger that keeps the tsvector column up to
             # date.
             if column.type.columns:
                 table = column.table
                 if self.option(column, 'remove_symbols'):
-                    event.listen(
+                    self.add_listener((
                         table,
                         'after_create',
                         self.search_function_ddl(column)
-                    )
-                    event.listen(
+                    ))
+                    self.add_listener((
                         table,
                         'after_drop',
                         DDL(str(DropSearchFunctionSQL(column)))
-                    )
-                event.listen(
+                    ))
+
+                self.add_listener((
                     table,
                     'after_create',
                     self.search_trigger_ddl(column)
-                )
+                ))
 
 
 search_manager = SearchManager()
