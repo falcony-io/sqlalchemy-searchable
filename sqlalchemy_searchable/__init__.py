@@ -64,7 +64,7 @@ def inspect_search_vectors(entity):
     ]
 
 
-def search(query, search_query, vector=None, regconfig=None, sort=False):
+def search(query, search_query, vector=None, regconfig=None, sort=False, desc=True):
     """
     Search given query with full text search.
 
@@ -91,14 +91,16 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
 
     query = query.filter(vector.match(search_query, **kwargs))
     if sort:
-        query = query.order_by(
-            sa.desc(
-                sa.func.ts_rank_cd(
-                    vector,
-                    sa.func.to_tsquery(search_query)
-                )
-            )
+        rank_clause = sa.func.ts_rank_cd(
+            vector,
+            sa.func.to_tsquery(search_query)
         )
+
+        if desc:
+            query = query.order_by(sa.desc(rank_clause))
+
+        else:
+            query = query.order_by(sa.asc(rank_clause))
 
     return query.params(term=search_query)
 
