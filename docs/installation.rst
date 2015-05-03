@@ -41,11 +41,13 @@ We want the name and content to be fulltext indexed, hence we put them inside th
         search_vector = sa.Column(TSVectorType('name', 'content'))
 
 
-Now lets create some dummy data.
+Now lets create the tables and some dummy data. It is very important here that you either
+access your searchable class or call ``configure_mappers`` before the creation of tables. SA-Searchable adds DDL listeners on the configuration phase of models.
 ::
 
 
     engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
+    sa.orm.configure_mappers()  # IMPORTANT!
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
