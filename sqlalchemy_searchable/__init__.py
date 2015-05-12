@@ -1,5 +1,5 @@
 import re
-from itertools import chain
+from functools import reduce
 
 import sqlalchemy as sa
 from pyparsing import ParseException
@@ -159,7 +159,7 @@ class SQLConstruct(object):
             column=self.tsvector_column.name
         )
 
-    def format_column(self, column):
+    def column_vector(self, column):
         value = sa.text('NEW.{column}'.format(column=column.name))
         try:
             vectorizer_func = vectorizer[column]
@@ -176,18 +176,18 @@ class SQLConstruct(object):
                 sa.text("' '"),
                 sa.text("'g'")
             )
+        value = sa.func.to_tsvector(self.options['regconfig'], value)
+        if column.name in self.options['weights']:
+            weight = self.options['weights'][column.name]
+            value = sa.func.setweight(value, weight)
         return value
 
     @property
-    def search_function_args(self):
-        args = (
-            (
-                self.format_column(getattr(self.table.c, column_name)),
-                sa.text("' '")
-            )
-            for column_name in self.indexed_columns
-        )
-        compiled = sa.func.concat(*chain(*args)).compile(self.conn)
+    def search_vector(self):
+        vectors = (self.column_vector(getattr(self.table.c, column_name))
+                   for column_name in self.indexed_columns)
+        concatenated = reduce(lambda x, y: x.op('||')(y), vectors)
+        compiled = concatenated.compile(self.conn)
         self.params = compiled.params
         return compiled
 
@@ -198,9 +198,7 @@ class CreateSearchFunctionSQL(SQLConstruct):
             """CREATE FUNCTION
                 {search_trigger_function_name}() RETURNS TRIGGER AS $$
             BEGIN
-                NEW.{search_vector_name} = to_tsvector(
-                    {arguments}
-                );
+                NEW.{search_vector_name} = {ts_vector};
                 RETURN NEW;
             END
             $$ LANGUAGE 'plpgsql';
@@ -208,10 +206,7 @@ class CreateSearchFunctionSQL(SQLConstruct):
         ).format(
             search_trigger_function_name=self.search_function_name,
             search_vector_name=self.tsvector_column.name,
-            arguments="'%s', %s" % (
-                self.options['regconfig'],
-                self.search_function_args
-            )
+            ts_vector=self.search_vector
         )
 
 
@@ -264,7 +259,8 @@ class SearchManager():
         'remove_symbols': '-@.',
         'search_trigger_name': '{table}_{column}_trigger',
         'search_trigger_function_name': '{table}_{column}_update',
-        'regconfig': 'pg_catalog.english'
+        'regconfig': 'pg_catalog.english',
+        'weights': (),
     }
 
     def __init__(self, options={}):
