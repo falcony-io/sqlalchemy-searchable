@@ -41,6 +41,33 @@ In the following example we use Finnish regconfig instead of the default English
 
         search_vector = TSVectorType('name', regconfig='pg_catalog.finnish')
 
+Weighting search results
+------------------------
+
+PostgreSQL supports `weighting search terms`_ with weights A through D.
+
+In this example, we give higher priority to terms appearing in the article title than in the content.
+::
+
+
+    class Article(Base):
+        __tablename__ = 'article'
+
+        title = sa.Column(sa.Unicode(255))
+        content = sa.Column(sa.UnicodeText)
+
+        search_vector = sa.Column(
+            TSVectorType('title', 'content',
+                         weights={'title': 'A', 'content': 'B'})
+        )
+
+Note that in order to see the effect of this weighting, you must search with ``sort=True``
+
+::
+
+    query = session.query(Article)
+    query = search(query, 'search text', sort=True)
+
 
 Multiple search vectors per class
 ---------------------------------
@@ -144,3 +171,5 @@ This query becomes a little more complex when using left joins. Then you have to
         |
         sa.func.coalesce(Category.search_vector, u'')
     )
+
+.. _weighting search terms: http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
