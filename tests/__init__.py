@@ -16,6 +16,8 @@ from sqlalchemy_searchable import (
     vectorizer
 )
 
+CONNECTION_STRING = 'postgres://postgres@localhost/sqlalchemy_searchable_test'
+
 try:
     import __pypy__
 except ImportError:
@@ -36,9 +38,7 @@ class TestCase(object):
     search_trigger_function_name = '{table}_{column}_update'
 
     def setup_method(self, method):
-        self.engine = create_engine(
-            'postgres://postgres@localhost/sqlalchemy_searchable_test'
-        )
+        self.engine = create_engine(CONNECTION_STRING)
         self.engine.execute('CREATE EXTENSION IF NOT EXISTS hstore')
         # self.engine.echo = True
         self.Base = declarative_base()
