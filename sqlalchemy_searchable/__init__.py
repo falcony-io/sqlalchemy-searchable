@@ -431,16 +431,16 @@ def sync_trigger(
             vectorizer.clear()
 
             conn = op.get_bind()
-            op.add_column('article', sa.Column('name_translations', sa.Text))
+            op.add_column('article', sa.Column('name_translations', HSTORE))
 
             metadata = sa.MetaData(bind=conn)
             articles = sa.Table('article', metadata, autoload=True)
 
-            @vectorizer(article.c.content)
+            @vectorizer(articles.c.name_translations)
             def hstore_vectorizer(column):
                 return sa.cast(sa.func.avals(column), sa.Text)
 
-            op.add_column('article', sa.Column('name_translations', sa.Text))
+            op.add_column('article', sa.Column('content', sa.Text))
             sync_trigger(
                 conn,
                 'article',
