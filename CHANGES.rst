@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.9.3 (2015-05-31)
+^^^^^^^^^^^^^^^^^^
+
+- Added support for search term weights
+
+
 0.9.2 (2015-04-01)
 ^^^^^^^^^^^^^^^^^^
 
