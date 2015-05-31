@@ -8,7 +8,6 @@ from tests import SchemaTestCase, TestCase
 
 
 class WeightedBase(object):
-
     def create_models(self):
         class WeightedTextItem(self.Base):
             __tablename__ = 'textitem'
@@ -17,9 +16,13 @@ class WeightedBase(object):
 
             name = sa.Column(sa.Unicode(255))
             content = sa.Column(sa.UnicodeText)
-            search_vector = sa.Column(TSVectorType('name', 'content',
-                                                   weights={'name': 'A',
-                                                            'content': 'B'}))
+            search_vector = sa.Column(
+                TSVectorType(
+                    'name',
+                    'content',
+                    weights={'name': 'A', 'content': 'B'}
+                )
+            )
         self.WeightedTextItem = WeightedTextItem
 
 
@@ -41,7 +44,6 @@ class TestCreateWeightedSearchVector(WeightedBase, SchemaTestCase):
 
 
 class TestWeightedSearchFunction(WeightedBase, TestCase):
-
     def setup_method(self, method):
         TestCase.setup_method(self, method)
         self.session.add(
@@ -56,5 +58,7 @@ class TestWeightedSearchFunction(WeightedBase, TestCase):
         query = self.session.query(self.WeightedTextItem)
         first, second = search(query, 'klaatu', sort=True).all()
         assert first.search_vector == "'barada':2B 'klaatu':1A 'nikto':3B"
-        assert (second.search_vector ==
-                "'barada':3B 'gort':1A 'klaatu':2B 'nikto':4B")
+        assert (
+            second.search_vector ==
+            "'barada':3B 'gort':1A 'klaatu':2B 'nikto':4B"
+        )

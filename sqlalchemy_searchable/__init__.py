@@ -184,8 +184,10 @@ class SQLConstruct(object):
 
     @property
     def search_vector(self):
-        vectors = (self.column_vector(getattr(self.table.c, column_name))
-                   for column_name in self.indexed_columns)
+        vectors = (
+            self.column_vector(getattr(self.table.c, column_name))
+            for column_name in self.indexed_columns
+        )
         concatenated = reduce(lambda x, y: x.op('||')(y), vectors)
         compiled = concatenated.compile(self.conn)
         self.params = compiled.params
