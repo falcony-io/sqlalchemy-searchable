@@ -16,7 +16,7 @@ Resources
 
 .. |Build Status| image:: https://travis-ci.org/kvesteri/sqlalchemy-searchable.png?branch=master
    :target: https://travis-ci.org/kvesteri/sqlalchemy-searchable
-.. |Version Status| image:: https://pypip.in/v/SQLAlchemy-Searchable/badge.png
-   :target: https://crate.io/packages/SQLAlchemy-Searchable/
-.. |Downloads| image:: https://pypip.in/d/SQLAlchemy-Searchable/badge.png
-   :target: https://crate.io/packages/SQLAlchemy-Searchable/
+.. |Version Status| image:: https://img.shields.io/pypi/v/SQLAlchemy-Searchable.svg
+   :target: https://pypi.python.org/pypi/SQLAlchemy-Searchable/
+.. |Downloads| image:: https://img.shields.io/pypi/dm/SQLAlchemy-Searchable.svg
+   :target: https://pypi.python.org/pypi/SQLAlchemy-Searchable/
