@@ -10,7 +10,7 @@ from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser
 from .vectorizers import Vectorizer
 
-__version__ = '0.9.4'
+__version__ = '0.10.0'
 
 
 parser = SearchQueryParser()
