@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.9.4 (2016-03-31)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed unicode parsing in search query parser, #42
+
+
 0.9.3 (2015-05-31)
 ^^^^^^^^^^^^^^^^^^
 

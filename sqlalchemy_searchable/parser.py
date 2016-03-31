@@ -31,7 +31,7 @@ unicode_alnum = ''.join(
 unicode_non_alnum = ''.join(
     c for c in all_unicode
     if not is_alphanumeric(c) and
-    c not in ['-', '(', ')']
+    c not in '-() '
 )
 
 
@@ -76,7 +76,9 @@ class SearchQueryParser(object):
         """
         or_ = Forward()
 
-        word = Group(Word(unicode_alnum + '@.')).setResultsName('word')
+        word = Group(
+            Word(unicode_alnum + unicode_non_alnum)
+        ).setResultsName('word')
 
         parenthesis = Group(
             (Suppress('(') + or_ + Suppress(')'))

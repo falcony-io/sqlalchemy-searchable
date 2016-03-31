@@ -116,8 +116,13 @@ class TestParseSearchQuery(object):
             u'ähtäri:*'
         )
 
+    def test_special_chars(self):
+        assert parse_search_query("star!:*@@?`") == (
+            'star:*'
+        )
+
     def test_single_quotes(self):
-        assert parse_search_query("'star") == (
+        assert parse_search_query("'star'") == (
             'star:*'
         )
 
