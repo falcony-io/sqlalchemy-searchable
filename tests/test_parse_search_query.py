@@ -15,9 +15,7 @@ class TestParseSearchQuery(object):
             parse_search_query(
                 'star wars',
                 parser=SearchQueryParser(wildcard='*')
-            )
-            ==
-            'star* & wars*'
+            ) == 'star* & wars*'
         )
 
     def test_operator_parsing(self):
