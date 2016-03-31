@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pyparsing import ParseException
 from pytest import raises
 
