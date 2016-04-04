@@ -6,7 +6,7 @@ Installation
     pip install SQLAlchemy-Searchable
 
 
-Supported versions are python 2.6, 2.7, 3.3 and 3.4.
+Supported versions are python 2.7 and 3.3+.
 
 
 QuickStart
@@ -14,7 +14,7 @@ QuickStart
 
 1. Import and call make_searchable function.
 
-2. Define TSVectorType columns to your SQLAlchemy declarative model.
+2. Define TSVectorType columns in your SQLAlchemy declarative model.
 
 
 First let's define a simple Article model. This model has three fields: id, name and content.
@@ -61,7 +61,7 @@ access your searchable class or call ``configure_mappers`` before the creation o
     session.commit()
 
 
-After we've created the articles, we can search trhough them.
+After we've created the articles, we can search through them.
 ::
 
 
@@ -80,4 +80,3 @@ Optionally specify ``sort=True`` to get results in order of relevance (ts_rank_c
     query = search(query, 'first', sort=True)
 
 .. _ts_rank_cd: http://www.postgresql.org/docs/devel/static/textsearch-controls.html#TEXTSEARCH-RANKING
-

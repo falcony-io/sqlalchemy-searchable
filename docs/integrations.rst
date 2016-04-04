@@ -12,7 +12,7 @@ Example ::
     from sqlalchemy_searchable import make_searchable
 
     db = SQLAlchemy()
-    
+
     make_searchable()
 
 
@@ -30,7 +30,7 @@ Example ::
         search_vector = db.Column(TSVectorType('name', 'content'))
 
 
-Now this is where the fun begins! SearchQueryMixin provides search method for ArticleQuery. You can chain calls just like when using query filter calls.
+Now this is where the fun begins! SearchQueryMixin provides a search method for ArticleQuery. You can chain calls just like when using query filter calls.
 Here we search for first 5 articles that contain the word 'Finland'.
 ::
 

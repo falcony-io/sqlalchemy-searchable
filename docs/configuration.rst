@@ -1,7 +1,7 @@
 Configuration
 =============
 
-SQLAlchemy-Searchable provides number of customization options for the automatically generated
+SQLAlchemy-Searchable provides a number of customization options for the automatically generated
 search trigger, index and search_vector columns.
 
 Global configuration options
@@ -84,7 +84,7 @@ Multiple search vectors per class
         simple_search_vector = sa.Column(TSVectorType('name'))
 
         fat_search_vector = sa.Column(
-            TSVectorType('name', 'content', 'desription')
+            TSVectorType('name', 'content', 'description')
         )
 
 
