@@ -4,7 +4,6 @@ Search query parser
 As of version 0.3.0 SQLAlchemy-Searchable comes with built in search query parser. The search query parser is capable of parsing human readable search queries into PostgreSQL search query syntax.
 
 
-
 AND operator
 ------------
 
@@ -17,6 +16,7 @@ The default operator is 'and', hence the following queries are essentially the s
     query = search(query, 'star wars')
     query2 = search(query, 'star and wars')
     assert query == query2
+
 
 OR operator
 ------------
