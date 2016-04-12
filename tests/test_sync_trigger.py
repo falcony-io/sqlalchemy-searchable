@@ -12,7 +12,8 @@ class SyncTriggerTestCase(TestCase):
         conn = self.session.bind
         conn.execute(
             '''CREATE TABLE article
-            (name TEXT, content TEXT, search_vector TSVECTOR)
+            (name TEXT, content TEXT, "current_user" TEXT,
+            search_vector TSVECTOR)
             '''
         )
 
@@ -77,6 +78,24 @@ class SyncTriggerTestCase(TestCase):
         )
         vector = conn.execute('SELECT search_vector FROM article').scalar()
         assert vector == "'content':5 'good':4 'name':2"
+
+    def test_trigger_with_reserved_word(self):
+        conn = self.session.bind
+        conn.execute(
+            '''INSERT INTO article (name, content, "current_user")
+            VALUES ('some name', 'some bad content', now())'''
+        )
+
+        sync_trigger(
+            conn,
+            'article',
+            'search_vector',
+            ['name', 'content', 'current_user']
+        )
+        # raises ProgrammingError without reserved_words:
+        conn.execute(
+            '''UPDATE article SET name=name'''
+        )
 
 
 create_test_cases(SyncTriggerTestCase)

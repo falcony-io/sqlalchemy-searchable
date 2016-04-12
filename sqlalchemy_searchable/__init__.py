@@ -4,6 +4,7 @@ from functools import reduce
 import sqlalchemy as sa
 from pyparsing import ParseException
 from sqlalchemy import event
+from sqlalchemy.dialects.postgresql.base import RESERVED_WORDS
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
 
@@ -160,6 +161,8 @@ class SQLConstruct(object):
         )
 
     def column_vector(self, column):
+        if column.name in RESERVED_WORDS:
+            column.name = quote_identifier(column.name)
         value = sa.text('NEW.{column}'.format(column=column.name))
         try:
             vectorizer_func = vectorizer[column]
