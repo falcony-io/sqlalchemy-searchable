@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.10.1 (2016-04-14)
+^^^^^^^^^^^^^^^^^^^
+
+- Use identifier quoting for reserved keywords (#45, pull request by cristen)
+
+
 0.10.0 (2016-03-31)
 ^^^^^^^^^^^^^^^^^^
 
