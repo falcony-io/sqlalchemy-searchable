@@ -89,6 +89,11 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
     kwargs = {}
     if regconfig is not None:
         kwargs['postgresql_regconfig'] = regconfig
+    else:
+        if 'regconfig' not in vector.type.options:
+            kwargs['postgresql_regconfig'] = (
+                search_manager.options['regconfig']
+            )
 
     query = query.filter(vector.match(search_query, **kwargs))
     if sort:

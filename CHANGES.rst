@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.10.2 (2016-09-02)
+^^^^^^^^^^^^^^^^^^^
+
+- Fix vector matching to use global configuration regconfig as fallback
+
+
 0.10.1 (2016-04-14)
 ^^^^^^^^^^^^^^^^^^^
 
