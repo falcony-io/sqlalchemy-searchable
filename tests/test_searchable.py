@@ -114,7 +114,6 @@ class TestUsesGlobalConfigOptionsAsFallbacks(TestCase):
 
     def test_uses_global_regconfig_as_fallback(self):
         query = search(self.session.query(self.TextItem.id), 'the')
-        result = query.count()
         assert query.count() == 1
 
 
