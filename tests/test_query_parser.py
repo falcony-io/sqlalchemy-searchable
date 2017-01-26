@@ -10,7 +10,7 @@ class TestSearchQueryParser(object):
         self.parser = SearchQueryParser()
 
     def test_unicode(self):
-        assert self.parser.parse(u'안녕') == u'안녕:*'
+        assert self.parser.parse(u'안녕가は') == u'안녕가は:*'
 
     def test_empty_string(self):
         with raises(ParseException):

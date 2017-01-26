@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.10.3 (2017-01-26)
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed 'Lo' unicode letter parsing (#50, pull request courtesy by StdCarrot)
+
+
 0.10.2 (2016-09-02)
 ^^^^^^^^^^^^^^^^^^^
 
