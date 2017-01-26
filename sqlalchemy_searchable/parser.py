@@ -20,7 +20,7 @@ from validators import email
 
 
 def is_alphanumeric(c):
-    return unicodedata.category(c) in ['Lu', 'Ll', 'Nd']
+    return unicodedata.category(c) in ['Lo', 'Lu', 'Ll', 'Nd']
 
 
 all_unicode = u''.join(six.unichr(c) for c in six.moves.range(65536))
