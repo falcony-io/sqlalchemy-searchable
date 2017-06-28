@@ -312,14 +312,10 @@ class SearchManager():
         ]
 
     def append_index(self, cls, column):
-        if not hasattr(cls, '__table_args__') or cls.__table_args__ is None:
-            cls.__table_args__ = []
-        cls.__table_args__ = list(cls.__table_args__).append(
-            sa.Index(
-                '_'.join(('ix', column.table.name, column.name)),
-                column,
-                postgresql_using='gin'
-            )
+        sa.Index(
+            '_'.join(('ix', column.table.name, column.name)),
+            column,
+            postgresql_using='gin'
         )
 
     def process_mapper(self, mapper, cls):
