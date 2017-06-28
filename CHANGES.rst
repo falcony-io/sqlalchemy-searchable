@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.10.4 (2017-06-28)
+^^^^^^^^^^^^^^^^^^^
+
+- Index generation no longer manipulates table args (#55, pull request by jmuhlich)
+
+
 0.10.3 (2017-01-26)
 ^^^^^^^^^^^^^^^^^^^
 

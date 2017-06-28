@@ -11,7 +11,7 @@ from sqlalchemy_utils import TSVectorType
 from .parser import SearchQueryParser
 from .vectorizers import Vectorizer
 
-__version__ = '0.10.3'
+__version__ = '0.10.4'
 
 
 parser = SearchQueryParser()
