@@ -1,4 +1,4 @@
-from sqlalchemy_searchable import sync_trigger, drop_trigger
+from sqlalchemy_searchable import drop_trigger, sync_trigger
 from tests import create_test_cases, TestCase
 
 
@@ -26,12 +26,22 @@ class DropTriggerTestCase(TestCase):
             'search_vector',
             ['name', 'content']
         )
-        trigger_exist = lambda:conn.execute(
-            "SELECT COUNT(*) FROM pg_trigger WHERE tgname='article_search_vector_trigger'"
-        ).scalar()
-        function_exist = lambda: conn.execute(
-            "SELECT COUNT(*) FROM pg_proc WHERE proname='article_search_vector_update'"
-        ).scalar()
+
+        def trigger_exist():
+            return conn.execute(
+                """SELECT COUNT(*)
+                   FROM pg_trigger
+                   WHERE tgname='article_search_vector_trigger'
+                """
+            ).scalar()
+
+        def function_exist():
+            return conn.execute(
+                """SELECT COUNT(*)
+                   FROM pg_proc
+                   WHERE proname='article_search_vector_update'
+                   """
+            ).scalar()
 
         assert trigger_exist() == 1
         assert function_exist() == 1
