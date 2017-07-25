@@ -129,8 +129,10 @@ class SQLConstruct(object):
         self.options = self.init_options(options)
         if indexed_columns:
             self.indexed_columns = list(indexed_columns)
-        else:
+        elif hasattr(self.tsvector_column.type, 'columns'):
             self.indexed_columns = list(self.tsvector_column.type.columns)
+        else:
+            self.indexed_columns = None
         self.params = {}
 
     def init_options(self, options=None):
@@ -492,6 +494,63 @@ def sync_trigger(
         {indexed_columns[0]: sa.text(indexed_columns[0])}
     )
     conn.execute(update_sql)
+
+
+def drop_trigger(
+    conn,
+    table_name,
+    tsvector_column,
+    metadata=None,
+    options=None
+):
+    """
+    * Drops search trigger for given table (if it exists)
+    * Drops search function for given table (if it exists)
+
+
+    Example::
+
+        from alembic import op
+        from sqlalchemy_searchable import drop_trigger
+
+
+        def downgrade():
+            conn = op.get_bind()
+
+            drop_trigger(conn, 'article', 'search_vector')
+            op.drop_index('ix_article_search_vector', table_name='article')
+            op.drop_column('article', 'search_vector')
+
+    :param conn: SQLAlchemy Connection object
+    :param table_name: name of the table to apply search trigger dropping
+    :param tsvector_column:
+        TSVector typed column which is used as the search index column
+    :param metadata:
+        Optional SQLAlchemy metadata object that is being used for autoloaded
+        Table. If None is given then new MetaData object is initialized within
+        this function.
+    :param options: Dictionary of configuration options
+    """
+    if metadata is None:
+        metadata = sa.MetaData()
+    table = sa.Table(
+        table_name,
+        metadata,
+        autoload=True,
+        autoload_with=conn
+    )
+    params = dict(
+        tsvector_column=getattr(table.c, tsvector_column),
+        options=options,
+        conn=conn
+    )
+    classes = [
+        DropSearchTriggerSQL,
+        DropSearchFunctionSQL,
+    ]
+    for class_ in classes:
+        sql = class_(**params)
+        conn.execute(str(sql), **sql.params)
 
 
 def make_searchable(
