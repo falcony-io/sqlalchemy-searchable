@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.10.5 (2017-07-25)
+^^^^^^^^^^^^^^^^^^^
+
+- Added drop_trigger utility function (#58, pull request by ilya-chistyakov)
+
+
 0.10.4 (2017-06-28)
 ^^^^^^^^^^^^^^^^^^^
 
