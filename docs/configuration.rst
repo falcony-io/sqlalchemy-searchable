@@ -11,14 +11,9 @@ The following configuration options can be defined globally by passing them to m
 
 * search_trigger_name - name of the search database trigger, default: {table}_search_update
 
-* search_trigger_function_name - the name for the database search vector updating function. This configuration option is only used if remove_hyphens is set as `True` otherwise the builtin postgresql `tsvector_update_trigger` is used for updating search vectors.
+* search_trigger_function_name - the name for the database search vector updating function.
 
 * regconfig - postgresql regconfig to be used, default: pg_catalog.english
-
-* remove_symbols - String indicating all symbols that should be removed and converted to emptry strings in each search vectorized column. By default this is `-@.`, meaning all `-`, `@` and `.` will be converted to empty strings.
-
-Before version 0.7.0 this configuration option was known as 'remove_hyphens' and provided only limited conversion of `-` symbols to empty strings.
-
 
 Example ::
 

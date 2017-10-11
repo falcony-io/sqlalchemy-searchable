@@ -11,6 +11,7 @@ from sqlalchemy_utils.types import TSVectorType
 
 from sqlalchemy_searchable import (
     make_searchable,
+    remove_listeners,
     search_manager,
     SearchQueryMixin,
     vectorizer
@@ -29,9 +30,6 @@ if __pypy__:
     compat.register()
 
 
-make_searchable()
-
-
 class TestCase(object):
     remove_symbols = '-@.'
     search_trigger_name = '{table}_{column}_trigger'
@@ -42,6 +40,7 @@ class TestCase(object):
         self.engine.execute('CREATE EXTENSION IF NOT EXISTS hstore')
         # self.engine.echo = True
         self.Base = declarative_base()
+        make_searchable(self.Base.metadata)
         self.create_models()
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
@@ -70,6 +69,7 @@ class TestCase(object):
         vectorizer.clear()
         self.drop_tables()
         self.engine.dispose()
+        remove_listeners(self.Base.metadata)
 
     def create_models(self):
         class TextItemQuery(Query, SearchQueryMixin):

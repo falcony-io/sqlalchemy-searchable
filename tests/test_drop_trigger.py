@@ -31,7 +31,7 @@ class DropTriggerTestCase(TestCase):
             return conn.execute(
                 """SELECT COUNT(*)
                    FROM pg_trigger
-                   WHERE tgname='article_search_vector_trigger'
+                   WHERE tgname = 'article_search_vector_trigger'
                 """
             ).scalar()
 
@@ -39,7 +39,7 @@ class DropTriggerTestCase(TestCase):
             return conn.execute(
                 """SELECT COUNT(*)
                    FROM pg_proc
-                   WHERE proname='article_search_vector_update'
+                   WHERE proname = 'article_search_vector_update'
                    """
             ).scalar()
 
