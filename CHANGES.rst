@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+0.10.6 (2017-10-12)
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed Flask-SQLAlchemy support (#63, pull request by quantus)
+
+
 0.10.5 (2017-07-25)
 ^^^^^^^^^^^^^^^^^^^
 
