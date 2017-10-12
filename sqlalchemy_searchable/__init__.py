@@ -302,14 +302,14 @@ class SearchManager():
         """
         return DDL(str(CreateSearchTriggerSQL(column)))
 
-    def inspect_columns(self, cls):
+    def inspect_columns(self, table):
         """
         Inspects all searchable columns for given class.
 
-        :param cls: SQLAlchemy declarative class
+        :param table: SQLAlchemy Table
         """
         return [
-            column for column in cls.__table__.c
+            column for column in table.c
             if isinstance(column.type, TSVectorType)
         ]
 
@@ -321,7 +321,7 @@ class SearchManager():
         )
 
     def process_mapper(self, mapper, cls):
-        columns = self.inspect_columns(cls)
+        columns = self.inspect_columns(mapper.mapped_table)
         for column in columns:
             if column in self.processed_columns:
                 continue
