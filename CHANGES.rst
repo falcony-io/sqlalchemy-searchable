@@ -3,6 +3,13 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+
+1.0.1 (2018-02-20)
+^^^^^^^^^^^^^^^^^^
+
+- Made all parser functions immutable
+
+
 1.0 (2018-02-20)
 ^^^^^^^^^^^^^^^^
 

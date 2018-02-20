@@ -20,7 +20,7 @@ BEGIN
     END IF;
     RETURN state;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION tsq_tokenize_character(state tsq_state)
@@ -74,7 +74,7 @@ BEGIN
     END IF;
     RETURN state;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION tsq_tokenize(search_query text) RETURNS text[] AS $$
@@ -117,7 +117,7 @@ BEGIN
 
     RETURN state.tokens;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 -- Processes an array of text search tokens and returns a tsquery
@@ -163,30 +163,30 @@ BEGIN
 
     RETURN to_tsquery(config, result_query);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION tsq_process_tokens(tokens text[])
 RETURNS tsquery AS $$
     SELECT tsq_process_tokens(get_current_ts_config(), tokens);
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION tsq_parse(config regconfig, search_query text)
 RETURNS tsquery AS $$
     SELECT tsq_process_tokens(config, tsq_tokenize(search_query));
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION tsq_parse(config text, search_query text)
 RETURNS tsquery AS $$
     SELECT tsq_parse(config::regconfig, search_query);
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL IMMUTABLE;
 
 
 CREATE OR REPLACE FUNCTION tsq_parse(search_query text) RETURNS tsquery AS $$
     SELECT tsq_parse(get_current_ts_config(), search_query);
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL IMMUTABLE;
 
 
 -- remove first N elements equal to the given value from the array (array
