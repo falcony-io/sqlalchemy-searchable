@@ -3,6 +3,16 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+1.0 (2018-02-20)
+^^^^^^^^^^^^^^^^
+
+- Added pure PostgreSQL search query parsing (faster and can be used on SQL level)
+- PostgreSQL >= 9.6 required
+- Added support for phrase searching
+- Removed python search query parsing
+- Removed pyparsing from requirements
+- Removed symbol removal (now handled implicitly on PostgreSQL side)
+
 
 0.10.6 (2017-10-12)
 ^^^^^^^^^^^^^^^^^^^

@@ -1,7 +1,7 @@
 Search query parser
 ===================
 
-As of version 0.3.0 SQLAlchemy-Searchable comes with built in search query parser. The search query parser is capable of parsing human readable search queries into PostgreSQL search query syntax.
+As of version 1.0 SQLAlchemy-Searchable comes with native PostgreSQL search query parser. The search query parser is capable of parsing human readable search queries into PostgreSQL search query syntax.
 
 
 AND operator
@@ -51,46 +51,26 @@ Parenthesis
 ::
 
 
-    query = search(query '(star wars) or luke')
+    query = search(query, '(star wars) or luke')
 
 
+Phrase searching
+----------------
 
-Special cases
--------------
-
-
-Hyphens between words
-^^^^^^^^^^^^^^^^^^^^^
-
-SQLAlchemy-Searchable is smart enough to not convert hyphens between words to negation operators. Instead, it simply converts all hyphens between words to spaces.
-
-Hence the following search queries are essentially the same:
-
-::
+SQLAlchemy-Searchable supports phrase searches. Just add the keywords in double quotes.::
 
 
-    query = search(query, 'star wars')
-    query2 = search(query, 'star-wars')
+query = search(query, '"star wars"')
 
-
-Emails as search terms
-^^^^^^^^^^^^^^^^^^^^^^
-
-PostgreSQL tsvectors handle email strings in a way that they don't get split into multiple tsvector terms. As of version 0.7 SQLAlchemy-Searchable doesn't handle emails this way by default, rather it splits the email into separate search terms. If you wish to override this behaviour you can use the `remove_symbols` configuration option.
-
-::
-
-    # Tries to match 'john', 'fastmonkeys' and 'com' separately
-    query = search(query, u'john@fastmonkeys.com')
 
 
 Internals
 ---------
 
-If you wish to use only the query parser this can be achieved by invoking `parse_search_query` function. This function parses human readable search query into PostgreSQL specific format.
+If you wish to use only the query parser this can be achieved by invoking `parse` function. This function parses human readable search query into PostgreSQL tsquery format.
 
 ::
 
 
-    parse_search_query('(star wars) or luke')
+    session.execute("SELECT ts_parse('(star wars) or luke')").scalar()
     # (star:* & wars:*) | luke:*

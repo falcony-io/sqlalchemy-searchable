@@ -116,6 +116,21 @@ class Vectorizer(object):
         self.type_vectorizers = {}
         self.column_vectorizers = {}
 
+    def contains_tsvector(self, tsvector_column):
+        if not hasattr(tsvector_column.type, 'columns'):
+            return False
+        return any(
+            getattr(tsvector_column.table.c, column) in self
+            for column in tsvector_column.type.columns
+        )
+
+    def __contains__(self, column):
+        try:
+            self[column]
+            return True
+        except KeyError:
+            return False
+
     def __getitem__(self, column):
         if column in self.column_vectorizers:
             return self.column_vectorizers[column]

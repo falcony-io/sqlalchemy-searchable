@@ -1,40 +1,17 @@
-import re
 from functools import reduce
 
 import sqlalchemy as sa
-from pyparsing import ParseException
 from sqlalchemy import event
 from sqlalchemy.dialects.postgresql.base import RESERVED_WORDS
 from sqlalchemy.schema import DDL
 from sqlalchemy_utils import TSVectorType
 
-from .parser import SearchQueryParser
 from .vectorizers import Vectorizer
 
-__version__ = '0.10.6'
+__version__ = '1.0'
 
 
-parser = SearchQueryParser()
 vectorizer = Vectorizer()
-
-
-def parse_search_query(query, parser=parser):
-    query = query.strip()
-    # Convert hyphens between words to spaces but leave all hyphens which are
-    # at the beginning of the word (negation operator)
-    query = re.sub(r'(?i)(?<=[^\s|^])-(?=[^\s])', ' ', query)
-
-    parts = query.split()
-    parts = [
-        parser.remove_special_chars(part).strip() for part in parts if part
-    ]
-    query = ' '.join(parts)
-    if not query:
-        return u''
-    try:
-        return parser.parse(query)
-    except ParseException:
-        return u''
 
 
 class SearchQueryMixin(object):
@@ -74,11 +51,7 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
     :param regconfig: postgresql regconfig to be used
     :param sort: order results by relevance (quality of hit)
     """
-    if not search_query:
-        return query
-
-    search_query = parse_search_query(search_query)
-    if not search_query:
+    if not search_query.strip():
         return query
 
     if vector is None:
@@ -86,22 +59,18 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
         search_vectors = inspect_search_vectors(entity)
         vector = search_vectors[0]
 
-    kwargs = {}
-    if regconfig is not None:
-        kwargs['postgresql_regconfig'] = regconfig
-    else:
-        if 'regconfig' not in vector.type.options:
-            kwargs['postgresql_regconfig'] = (
-                search_manager.options['regconfig']
-            )
+    if regconfig is None:
+        regconfig = search_manager.options['regconfig']
 
-    query = query.filter(vector.match(search_query, **kwargs))
+    query = query.filter(
+        vector.op('@@')(sa.func.tsq_parse(regconfig, search_query))
+    )
     if sort:
         query = query.order_by(
             sa.desc(
                 sa.func.ts_rank_cd(
                     vector,
-                    sa.func.to_tsquery(search_query)
+                    sa.func.tsq_parse(search_query)
                 )
             )
         )
@@ -178,14 +147,6 @@ class SQLConstruct(object):
         else:
             value = vectorizer_func(value)
         value = sa.func.coalesce(value, sa.text("''"))
-
-        if self.options['remove_symbols']:
-            value = sa.func.regexp_replace(
-                value,
-                sa.text("'[{0}]'".format(self.options['remove_symbols'])),
-                sa.text("' '"),
-                sa.text("'g'")
-            )
         value = sa.func.to_tsvector(self.options['regconfig'], value)
         if column.name in self.options['weights']:
             weight = self.options['weights'][column.name]
@@ -225,7 +186,13 @@ class CreateSearchFunctionSQL(SQLConstruct):
 class CreateSearchTriggerSQL(SQLConstruct):
     @property
     def search_trigger_function_with_trigger_args(self):
-        if self.options['remove_symbols']:
+        if (
+            self.options['weights'] or
+            any(
+                getattr(self.table.c, column) in vectorizer
+                for column in self.indexed_columns
+            )
+        ):
             return self.search_function_name + '()'
         return 'tsvector_update_trigger({arguments})'.format(
             arguments=', '.join(
@@ -268,7 +235,6 @@ class DropSearchTriggerSQL(SQLConstruct):
 
 class SearchManager():
     default_options = {
-        'remove_symbols': '-@.',
         'search_trigger_name': '{table}_{column}_trigger',
         'search_trigger_function_name': '{table}_{column}_update',
         'regconfig': 'pg_catalog.english',
@@ -334,20 +300,26 @@ class SearchManager():
         self.listeners.append(args)
         event.listen(*args)
 
+    def remove_listeners(self):
+        for listener in self.listeners:
+            event.remove(*listener)
+        self.listeners = []
+
     def attach_ddl_listeners(self):
         # Remove all previously added listeners, so that same listener don't
         # get added twice in situations where class configuration happens in
         # multiple phases (issue #31).
-        for listener in self.listeners:
-            event.remove(*listener)
-        self.listeners = []
+        self.remove_listeners()
 
         for column in self.processed_columns:
             # This sets up the trigger that keeps the tsvector column up to
             # date.
             if column.type.columns:
                 table = column.table
-                if self.option(column, 'remove_symbols'):
+                if (
+                    self.option(column, 'weights') or
+                    vectorizer.contains_tsvector(column)
+                ):
                     self.add_listener((
                         table,
                         'after_create',
@@ -358,7 +330,6 @@ class SearchManager():
                         'after_drop',
                         DDL(str(DropSearchFunctionSQL(column)))
                     ))
-
                 self.add_listener((
                     table,
                     'after_create',
@@ -553,7 +524,12 @@ def drop_trigger(
         conn.execute(str(sql), **sql.params)
 
 
+with open('sqlalchemy_searchable/expressions.sql') as file:
+    sql_expressions = DDL(file.read())
+
+
 def make_searchable(
+    metadata,
     mapper=sa.orm.mapper,
     manager=search_manager,
     options={}
@@ -564,4 +540,20 @@ def make_searchable(
     )
     event.listen(
         mapper, 'after_configured', manager.attach_ddl_listeners
+    )
+    event.listen(
+        metadata, 'before_create', sql_expressions
+    )
+
+
+def remove_listeners(metadata, manager=search_manager, mapper=sa.orm.mapper):
+    event.remove(
+        mapper, 'instrument_class', manager.process_mapper
+    )
+    event.remove(
+        mapper, 'after_configured', manager.attach_ddl_listeners
+    )
+    manager.remove_listeners()
+    event.remove(
+        metadata, 'before_create', sql_expressions
     )

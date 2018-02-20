@@ -45,16 +45,6 @@ class SearchQueryMixinTestCase(TestCase):
         assert query.search('content   some').first().name == u'index'
         assert query.search('  ').count() == 4
 
-    def test_search_removes_illegal_characters(self):
-        assert self.TextItemQuery(
-            self.TextItem, self.session
-        ).search(':!').count()
-
-    def test_search_removes_stopword_characters(self):
-        assert self.TextItemQuery(
-            self.TextItem, self.session
-        ).search('@#').count()
-
     def test_search_by_email(self):
         assert self.TextItemQuery(
             self.TextItem, self.session
@@ -63,7 +53,7 @@ class SearchQueryMixinTestCase(TestCase):
     def test_supports_regconfig_parameter(self):
         query = self.TextItemQuery(self.TextItem, self.session)
         query = query.search(u'orrimorri', regconfig='finnish')
-        assert "to_tsquery('finnish', %(search_vector_1)s)" in str(
+        assert "tsq_parse(%(tsq_parse_1)s, %(tsq_parse_2)s)" in str(
             query.statement.compile(self.session.bind)
         )
 

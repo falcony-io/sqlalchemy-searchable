@@ -52,7 +52,6 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'pyparsing>=2.0.1',
         'SQLAlchemy>=0.9.0',
         'SQLAlchemy-Utils>=0.29.0',
         'validators>=0.3.0',
