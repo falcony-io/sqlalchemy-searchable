@@ -1,3 +1,4 @@
+import os
 from functools import reduce
 
 import sqlalchemy as sa
@@ -524,7 +525,10 @@ def drop_trigger(
         conn.execute(str(sql), **sql.params)
 
 
-with open('sqlalchemy_searchable/expressions.sql') as file:
+path = os.path.dirname(os.path.abspath(__file__))
+
+
+with open(os.path.join(path, 'expressions.sql')) as file:
     sql_expressions = DDL(file.read())
 
 
