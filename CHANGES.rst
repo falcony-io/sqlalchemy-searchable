@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+1.0.2 (2018-02-22)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed import issue with expressions.sql
+
+
 1.0.1 (2018-02-20)
 ^^^^^^^^^^^^^^^^^^
 
