@@ -9,7 +9,7 @@ from sqlalchemy_utils import TSVectorType
 
 from .vectorizers import Vectorizer
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 vectorizer = Vectorizer()
