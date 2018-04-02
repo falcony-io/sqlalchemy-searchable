@@ -138,6 +138,7 @@ Now consider a situation where we want to find all articles, where either articl
 ::
 
 
+    import sqlalchemy as sa
     from sqlalchemy_searchable import parse_search_query
 
 
@@ -150,7 +151,7 @@ Now consider a situation where we want to find all articles, where either articl
         .join(Category)
         .filter(
             combined_search_vector.match(
-                parse_search_query(search_query)
+                sa.func.tsq_parse(search_query)
             )
         )
     )
