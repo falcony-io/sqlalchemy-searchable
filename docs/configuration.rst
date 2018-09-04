@@ -139,8 +139,6 @@ Now consider a situation where we want to find all articles, where either articl
 
 
     import sqlalchemy as sa
-    from sqlalchemy_searchable import parse_search_query
-
 
     search_query = u'matrix'
 
