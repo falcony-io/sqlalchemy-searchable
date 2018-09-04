@@ -13,7 +13,7 @@ Example ::
 
     db = SQLAlchemy()
 
-    make_searchable()
+    make_searchable(db.metadata)
     
 
     class ArticleQuery(BaseQuery, SearchQueryMixin):
