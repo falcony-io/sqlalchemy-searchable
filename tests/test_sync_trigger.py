@@ -126,6 +126,35 @@ class TestSyncTrigger:
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':2"
 
+    def test_does_not_update_column_values_when_updating_rows_disabled(
+        self, engine, ts_vector_options
+    ):
+        with engine.begin() as conn:
+            sync_trigger(
+                conn,
+                "article",
+                "search_vector",
+                ["name", "content"],
+                options=ts_vector_options,
+            )
+            conn.execute(
+                text(
+                    """INSERT INTO article (name, content)
+                    VALUES ('some name', 'some content')"""
+                )
+            )
+            conn.execute(text("ALTER TABLE article DROP COLUMN name"))
+            sync_trigger(
+                conn,
+                "article",
+                "search_vector",
+                ["content"],
+                options=ts_vector_options,
+                update_rows=False,
+            )
+            vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
+        assert vector == "'content':4 'name':2"
+
     def test_custom_vectorizers(sel, Base, engine, session, ts_vector_options):
         articles = sa.Table(
             "article",

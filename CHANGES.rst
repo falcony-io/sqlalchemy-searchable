@@ -10,6 +10,8 @@ Unreleased
 - Add support for PostgreSQL 16
 - Allow specifying schema in ``drop_trigger`` and ``sync_trigger`` (#95, pull
   request by @acarapetis)
+- Add ``update_rows`` parameter to ``sync_trigger`` (#76, pull request by
+  @scribu)
 
 2.0.0 (2023-08-28)
 ^^^^^^^^^^^^^^^^^^
