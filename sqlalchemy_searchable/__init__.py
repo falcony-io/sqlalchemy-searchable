@@ -347,7 +347,8 @@ def sync_trigger(
     tsvector_column,
     indexed_columns,
     metadata=None,
-    options=None
+    options=None,
+    update_rows=True,
 ):
     """
     Synchronizes search trigger and trigger function for given table and given
@@ -438,6 +439,9 @@ def sync_trigger(
         Table. If None is given then new MetaData object is initialized within
         this function.
     :param options: Dictionary of configuration options
+    :param update_rows:
+        If set to False, the values in the vector column will remain unchanged
+        until one of the indexed columns is updated.
     """
     if metadata is None:
         metadata = sa.MetaData()
@@ -462,10 +466,12 @@ def sync_trigger(
     for class_ in classes:
         sql = class_(**params)
         conn.execute(str(sql), **sql.params)
-    update_sql = table.update().values(
-        {indexed_columns[0]: sa.text(indexed_columns[0])}
-    )
-    conn.execute(update_sql)
+
+    if update_rows:
+        update_sql = table.update().values(
+            {indexed_columns[0]: sa.text(indexed_columns[0])}
+        )
+        conn.execute(update_sql)
 
 
 def drop_trigger(
