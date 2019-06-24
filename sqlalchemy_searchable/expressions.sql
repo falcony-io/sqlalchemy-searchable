@@ -59,16 +59,6 @@ BEGIN
         state.tokens := array_append(state.tokens, '-');
     ELSIF state.current_char = ' ' THEN
         state := tsq_append_current_token(state);
-        IF substring(
-            state.search_query FROM state.current_index FOR 4
-        ) = ' or ' THEN
-            state.skip_for := 2;
-
-            -- remove duplicate OR tokens
-            IF state.tokens[array_length(state.tokens, 1)] != ' | ' THEN
-                state.tokens := array_append(state.tokens, ' | ');
-            END IF;
-        END IF;
     ELSE
         state.current_token = state.current_token || state.current_char;
     END IF;
@@ -129,9 +119,14 @@ DECLARE
     value text;
 BEGIN
     result_query := '';
+
     FOREACH value IN ARRAY tokens LOOP
         IF value = '"' THEN
             CONTINUE;
+        END IF;
+
+        IF value = 'or' THEN
+            value := ' | ';
         END IF;
 
         IF left(value, 1) = '"' AND right(value, 1) = '"' THEN
@@ -151,11 +146,11 @@ BEGIN
         SELECT
             CASE
                 WHEN result_query = '' THEN value
-                WHEN (
-                    previous_value IN ('!(', '(', ' | ') OR
-                    value IN (')', ' | ')
-                ) THEN result_query || value
-                ELSE result_query || ' & ' || value
+                WHEN previous_value = ' | ' AND value = ' | ' THEN result_query
+                WHEN previous_value = ' | ' THEN result_query || ' | ' || value
+                WHEN previous_value IN ('!(', '(') OR value = ')' THEN result_query || value
+                WHEN value != ' | ' THEN result_query || ' & ' || value
+                ELSE result_query
             END
         INTO result_query;
         previous_value := value;

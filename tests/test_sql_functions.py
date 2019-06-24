@@ -37,6 +37,11 @@ class TestParse(TestCase):
             ('örrimöykky', "'örrimöykky':*"),
             ('-star', "!'star':*"),
             ('--star', "!'star':*"),
+            ('star or or', "'star':*"),
+            ('star or -""', "'star':*"),
+            ('star or ""', "'star':*"),
+            ('star or -', "'star':*"),
+            ('star or (', "'star':*"),
             ('---------star', "!'star':*"),
             ('- -- ---- --star', "!'star':*"),
             ('star -wars', "'star':* & !'wars':*"),
@@ -56,10 +61,7 @@ class TestParse(TestCase):
                 '"death star" -"star wars"',
                 "'death' <-> 'star' & ! ('star' <-> 'wars')"
             ),
-            (
-                '((star wars)) or luke',
-                "'star':* & 'wars':* | 'luke':*"
-            ),
+            ('((star wars)) or luke', "'star':* & 'wars':* | 'luke':*"),
             (
                 '"something fishy happened"',
                 "'something' <-> 'fishy' <-> 'happened'"

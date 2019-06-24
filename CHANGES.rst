@@ -4,6 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+1.1.0 (2019-06-24)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed some issues with query parsing
+
+
 1.0.3 (2018-02-22)
 ^^^^^^^^^^^^^^^^^^
 
