@@ -18,7 +18,9 @@ from sqlalchemy_searchable import (
     vectorizer
 )
 
-CONNECTION_STRING = 'postgresql://postgres@localhost/sqlalchemy_searchable_test'
+CONNECTION_STRING = (
+    'postgresql://postgres@localhost/sqlalchemy_searchable_test'
+)
 
 try:
     import __pypy__
