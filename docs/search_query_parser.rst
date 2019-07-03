@@ -72,5 +72,5 @@ If you wish to use only the query parser this can be achieved by invoking `parse
 ::
 
 
-    session.execute("SELECT ts_parse('(star wars) or luke')").scalar()
+    session.execute("SELECT tsq_parse('(star wars) or luke')").scalar()
     # (star:* & wars:*) | luke:*
