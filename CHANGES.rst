@@ -8,6 +8,8 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 ^^^^^^^^^^^^^^^^^^
 
 - Fixed some issues with query parsing
+- Fixed 'or' keyword parsing (#85)
+- Dropped py33 support
 
 
 1.0.3 (2018-02-22)
