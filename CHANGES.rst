@@ -4,12 +4,13 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
-1.1.0 (2019-06-24)
+1.1.0 (2019-07-05)
 ^^^^^^^^^^^^^^^^^^
 
 - Fixed some issues with query parsing
 - Fixed 'or' keyword parsing (#85)
 - Dropped py33 support
+- Fixed deprecation warnings (#81, pull request courtesy of Le-Stagiaire)
 
 
 1.0.3 (2018-02-22)
