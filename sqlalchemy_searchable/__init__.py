@@ -288,7 +288,7 @@ class SearchManager():
         )
 
     def process_mapper(self, mapper, cls):
-        columns = self.inspect_columns(mapper.mapped_table)
+        columns = self.inspect_columns(mapper.persist_selectable)
         for column in columns:
             if column in self.processed_columns:
                 continue

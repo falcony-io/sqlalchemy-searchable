@@ -46,7 +46,7 @@ access your searchable class or call ``configure_mappers`` before the creation o
 ::
 
 
-    engine = create_engine('postgres://localhost/sqlalchemy_searchable_test')
+    engine = create_engine('postgresql://localhost/sqlalchemy_searchable_test')
     sa.orm.configure_mappers()  # IMPORTANT!
     Base.metadata.create_all(engine)
 

@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
+from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy_utils.types import TSVectorType
 
 from sqlalchemy_searchable import (
@@ -17,7 +18,9 @@ from sqlalchemy_searchable import (
     vectorizer
 )
 
-CONNECTION_STRING = 'postgres://postgres@localhost/sqlalchemy_searchable_test'
+CONNECTION_STRING = (
+    'postgresql://postgres@localhost/sqlalchemy_searchable_test'
+)
 
 try:
     import __pypy__
@@ -65,7 +68,7 @@ class TestCase(object):
         search_manager.processed_columns = []
 
         self.session.expunge_all()
-        self.session.close_all()
+        close_all_sessions()
         vectorizer.clear()
         self.drop_tables()
         self.engine.dispose()
