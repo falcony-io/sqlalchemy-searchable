@@ -138,6 +138,8 @@ BEGIN
         IF previous_value = '-' THEN
             IF value = '(' THEN
                 value := '!' || value;
+            ELSIF value = ' | ' THEN
+                CONTINUE;
             ELSE
                 value := '!(' || value || ')';
             END IF;
@@ -155,6 +157,10 @@ BEGIN
         INTO result_query;
         previous_value := value;
     END LOOP;
+
+    IF result_query = ' | ' THEN
+        RETURN to_tsquery('');
+    END IF;
 
     RETURN to_tsquery(config, result_query);
 END;
