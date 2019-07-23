@@ -13,7 +13,7 @@ Example ::
 
     db = SQLAlchemy()
 
-    make_searchable()
+    make_searchable(db.metadata)
     
 
     class ArticleQuery(BaseQuery, SearchQueryMixin):
@@ -31,7 +31,6 @@ Example ::
     
     db.configure_mappers() #very important!
     db.create_all()
-    db.commit()
 
 
 Now this is where the fun begins! SearchQueryMixin provides a search method for ArticleQuery. You can chain calls just like when using query filter calls.
