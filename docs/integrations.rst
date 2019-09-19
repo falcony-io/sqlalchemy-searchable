@@ -39,4 +39,4 @@ Here we search for first 5 articles that contain the word 'Finland'.
 
     Article.query.search(u'Finland').limit(5).all()
 
-When using Flask-SQLAlchemy, the columns of your models might be set to various DataTypes(i.e db.Datetime, db.String, db.Integer, etc.). As of 30/06/2016, SQLAlchemy-searchable does not support those datatypes and returns a TypeError when said columns are implemented in the search vector. Instead, use Unicode and UnicodeText accordingly. 
+Note that if you are still using Python 2 you will need to replace the String and Text datatypes with Unicode and UnicodeText, respectively.
