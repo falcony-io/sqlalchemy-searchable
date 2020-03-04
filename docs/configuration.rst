@@ -96,7 +96,7 @@ Combined search vectors
 Sometimes you may want to search from multiple tables at the same time. This can be achieved using
 combined search vectors.
 
-Consider the following model definition. Here each article has one author.
+Consider the following model definition. Here each article has one category.
 
 ::
 
