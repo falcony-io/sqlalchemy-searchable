@@ -31,6 +31,7 @@ class TestParse(TestCase):
             ('john@example.com', "'john@example.com':*"),
             ('star organs', "'star':* & 'organs':*"),
             ('organs', "'organs':*"),
+            ('or star', "'star':*"),
             ('star or wars', "'star':* | 'wars':*"),
             ('star or or wars', "'star':* | 'wars':*"),
             ('"star or or wars"', "star <-> or <-> or <-> wars"),

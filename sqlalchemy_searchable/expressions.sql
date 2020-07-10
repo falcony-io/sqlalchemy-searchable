@@ -155,12 +155,13 @@ BEGIN
                 ELSE result_query
             END
         INTO result_query;
+
+        IF result_query = ' | ' THEN
+            result_query := '';
+        END IF;
+
         previous_value := value;
     END LOOP;
-
-    IF result_query = ' | ' THEN
-        RETURN to_tsquery('');
-    END IF;
 
     RETURN to_tsquery(config, result_query);
 END;
