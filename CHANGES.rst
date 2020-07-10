@@ -4,6 +4,13 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+1.2.0 (2020-07-10)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed 'or' keyword parsing (#93)
+- Dropped py27 support
+
+
 1.1.0 (2019-07-05)
 ^^^^^^^^^^^^^^^^^^
 
