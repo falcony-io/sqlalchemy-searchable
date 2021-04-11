@@ -29,8 +29,7 @@ We want the name and content to be fulltext indexed, hence we put them inside th
 
     Base = declarative_base()
 
-    make_searchable()
-
+    make_searchable(Base.metadata)
 
     class Article(Base):
         __tablename__ = 'article'
