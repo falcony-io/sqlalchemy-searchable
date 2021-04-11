@@ -18,7 +18,7 @@ The following configuration options can be defined globally by passing them to m
 Example ::
 
 
-    make_searchable(options={'regconfig': 'pg_catalog.finnish'})
+    make_searchable(Base.metadata, options={'regconfig': 'pg_catalog.finnish'})
 
 
 Changing catalog for search vector
