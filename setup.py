@@ -52,7 +52,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'SQLAlchemy>=0.9.0',
+        'SQLAlchemy>=1.3.0',
         'SQLAlchemy-Utils>=0.29.0',
         'validators>=0.3.0',
     ],
