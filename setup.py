@@ -7,13 +7,8 @@ Provides fulltext search capabilities for declarative SQLAlchemy models.
 
 import os
 import re
+
 from setuptools import setup
-
-try:
-    import __pypy__
-except ImportError:
-    __pypy__ = None
-
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -25,15 +20,6 @@ def get_version():
     pattern = r"^__version__ = '(.*?)'$"
     return re.search(pattern, contents, re.MULTILINE).group(1)
 
-
-extras_require = {
-    'test': [
-        'pytest>=2.2.3',
-        'psycopg2cffi>=2.6.1' if __pypy__ else 'psycopg2>=2.4.6',
-        'flake8>=2.4.0',
-        'isort>=3.9.6'
-    ],
-}
 
 setup(
     name='SQLAlchemy-Searchable',
@@ -56,7 +42,6 @@ setup(
         'SQLAlchemy-Utils>=0.29.0',
         'validators>=0.3.0',
     ],
-    extras_require=extras_require,
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
