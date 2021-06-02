@@ -89,31 +89,3 @@ class TestParse(TestCase):
                 "SELECT CAST(:output AS tsquery)", {'output': output}
             ).scalar()
         )
-
-
-class TestArrayNremove(TestCase):
-    @pytest.mark.parametrize(
-        ('original', 'element', 'count', 'output'),
-        (
-            ([], 1, 1, []),
-            ([1], 1, 1, []),
-            ([1, 2, 2, 4], 2, 1, [1, 2, 4]),
-            ([1, 2, 2, 4], 2, 2, [1, 4]),
-            ([1, 2, 2, 4], 2, 0, [1, 2, 2, 4]),
-            ([1, 2, 2, 4], 3, 1, [1, 2, 2, 4]),
-            (['a', 'b', 'c'], 'b', 1, ['a', 'c']),
-            (['a', 'b', 'c', 'a'], 'a', -1, ['a', 'b', 'c']),
-            (['a', 'b', 'a', 'c', 'a'], 'a', -2, ['a', 'b', 'c']),
-        )
-    )
-    def test_array_nremove(self, original, element, count, output):
-        assert (
-            self.session.execute(
-                """SELECT array_nremove(:original, :element, :count)""",
-                {
-                    'original': original,
-                    'element': element,
-                    'count': count
-                }
-            ).scalar() == output
-        )
