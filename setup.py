@@ -39,7 +39,7 @@ setup(
     platforms='any',
     install_requires=[
         'SQLAlchemy>=1.3.0',
-        'SQLAlchemy-Utils>=0.29.0',
+        'SQLAlchemy-Utils>=0.37.5',
         'validators>=0.3.0',
     ],
     classifiers=[
