@@ -40,7 +40,7 @@ class TestParse(TestCase):
             ('örrimöykky', "'örrimöykky':*"),
             ('-star', "!'star':*"),
             ('--star', "!!'star':*"),
-            ('star or or', "'star':* | or:*"),
+            ('star or or', "'star':* | or:*"),
             ('star or -""', "'star':*"),
             ('star or ""', "'star':*"),
             ('star or -', "'star':*"),
