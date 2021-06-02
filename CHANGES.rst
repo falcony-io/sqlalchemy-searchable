@@ -4,11 +4,12 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
-1.3.0 (2021-xx-xx)
+1.3.0 (2021-06-02)
 ^^^^^^^^^^^^^^^^^^
 
 - Raise PostgreSQL requirement to version 11
 - Use websearch_to_tsquery internally rather than own parsing functions
+- Drop py34, py35 support
 
 
 1.2.0 (2020-07-10)
