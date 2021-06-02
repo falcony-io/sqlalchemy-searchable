@@ -17,13 +17,15 @@ before_script:
 
 language: python
 env:
-  - TOXENV=py-sqla{1.3}
+  - TOXENV=py-sqla{1.3,1.4}
 matrix:
   include:
     - python: 3.4
     - python: 3.5
     - python: 3.6
     - python: 3.7
+    - python: 3.8
+    - python: 3.9
     - python: pypy3
     - python: 3.7
       env: TOXENV=lint
