@@ -53,8 +53,9 @@ class SearchQueryMixinTestCase(TestCase):
     def test_supports_regconfig_parameter(self):
         query = self.TextItemQuery(self.TextItem, self.session)
         query = query.search(u'orrimorri', regconfig='finnish')
-        assert "tsq_parse(%(tsq_parse_1)s, %(tsq_parse_2)s)" in str(
-            query.statement.compile(self.session.bind)
+        assert (
+            'parse_websearch(%(parse_websearch_1)s, %(parse_websearch_2)s)'
+            in str(query.statement.compile(self.session.bind))
         )
 
     def test_supports_vector_parameter(self):

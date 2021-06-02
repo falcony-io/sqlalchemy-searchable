@@ -64,14 +64,14 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
         regconfig = search_manager.options['regconfig']
 
     query = query.filter(
-        vector.op('@@')(sa.func.tsq_parse(regconfig, search_query))
+        vector.op('@@')(sa.func.parse_websearch(regconfig, search_query))
     )
     if sort:
         query = query.order_by(
             sa.desc(
                 sa.func.ts_rank_cd(
                     vector,
-                    sa.func.tsq_parse(search_query)
+                    sa.func.parse_websearch(search_query)
                 )
             )
         )
