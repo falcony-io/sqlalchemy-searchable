@@ -4,7 +4,7 @@ dist: xenial
 before_install:
   - sudo apt-get update
   - sudo /etc/init.d/postgresql stop
-  - sudo /etc/init.d/postgresql start 9.6
+  - sudo /etc/init.d/postgresql start 11
 
 before_script:
   - psql -c 'create database sqlalchemy_searchable_test;' -U postgres
