@@ -31,7 +31,7 @@ class TestParse(TestCase):
             ('organs', "'organs':*"),
             ('star or wars', "'star':* | 'wars':*"),
             ('star or or wars', "'star':* | 'or':*  & 'wars':*"),
-            ('"star or or wars"', "star <-> or <-> or <-> wars"),
+            ('"star or or wars"', "star:* <-> or:* <-> or:* <-> wars:*"),
             ('star or   or    or    wars', "'star':* | 'or':* | 'wars':*"),
             ('star oror wars', "'star':* & 'oror':* & 'wars':*"),
             ('star-wars', "'star-wars':* & 'star':* & 'wars':*"),
@@ -49,8 +49,8 @@ class TestParse(TestCase):
             ('star -wars', "'star':* & !'wars':*"),
             ("'star'", "'star':*"),
             ("''star''", "'star':*"),
-            ('"star wars"', "'star' <-> 'wars'"),
-            ('-"star wars"', "!( 'star' <-> 'wars' )"),
+            ('"star wars"', "'star':* <-> 'wars':*"),
+            ('-"star wars"', "!( 'star':* <-> 'wars':* )"),
             ('""star wars""', "'star':* & 'wars':*"),
             ('star!:*@@?`', "'star':*"),
             ('"star', "'star':*"),
@@ -59,23 +59,35 @@ class TestParse(TestCase):
             ('"test""', "'test':*"),
             (
                 '"death star" -"star wars"',
-                "'death' <-> 'star' & ! ('star' <-> 'wars')"
+                "'death':* <-> 'star':* & ! ('star':* <-> 'wars':*)"
             ),
             (
                 '"something fishy happened"',
-                "'something' <-> 'fishy' <-> 'happened'"
+                "'something':* <-> 'fishy':* <-> 'happened':*"
             ),
             (
                 '"star wars" "death star"',
-                "'star' <-> 'wars' & 'death' <-> 'star'"
+                "'star':* <-> 'wars':* & 'death':* <-> 'star':*"
             ),
             (
                 '"star wars""death star"',
-                "'star' <-> 'wars' & 'death' <-> 'star'"
+                "'star':* <-> 'wars':* & 'death':* <-> 'star':*"
             ),
             (
                 'star or wars luke or solo',
                 "'star':* | 'wars':* & 'luke':* | 'solo':*"
+            ),
+            (
+                '-star#wars',
+                "!( 'star':* & 'wars':* )"
+            ),
+            (
+                '-star#wars or -star#wars',
+                "!( 'star':* & 'wars':* ) | !( 'star':* & 'wars':* )"
+            ),
+            (
+                '"star#wars star_wars"',
+                "( 'star':* & 'wars':* ) <-> ( 'star':* & 'wars':* )"
             ),
         )
     )

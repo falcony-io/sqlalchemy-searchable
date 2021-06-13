@@ -4,6 +4,13 @@ Changelog
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
 
+1.4.0 (2021-06-13)
+^^^^^^^^^^^^^^^^^^
+
+- Simplify search parsing
+- Fix parser errors with search keywords containing special characters such as underscores
+
+
 1.3.0 (2021-06-02)
 ^^^^^^^^^^^^^^^^^^
 
