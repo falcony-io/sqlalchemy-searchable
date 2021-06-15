@@ -25,9 +25,9 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
 
             content = sa.Column(sa.UnicodeText)
 
-            name_vector = sa.Column(TSVectorType('name'))
+            name_vector = sa.Column(TSVectorType('name', auto_index=True))
 
-            content_vector = sa.Column(TSVectorType('content'))
+            content_vector = sa.Column(TSVectorType('content', auto_index=True))
 
 
 class TestMultipleSearchVectorsSearchFunction(TestCase):
@@ -41,8 +41,8 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
 
             name = sa.Column(sa.Unicode(255))
             content = sa.Column(sa.UnicodeText)
-            name_vector = sa.Column(TSVectorType('name'))
-            content_vector = sa.Column(TSVectorType('content'))
+            name_vector = sa.Column(TSVectorType('name', auto_index=False))
+            content_vector = sa.Column(TSVectorType('content', auto_index=False))
 
         self.TextMultiItem = TextMultiItem
 
@@ -60,5 +60,7 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
         query = self.TextItemQuery(self.TextMultiItem, self.session)
         s1 = search(query, 'ipsum', vector=self.TextMultiItem.name_vector)
         assert s1.first().name == 'ipsum'
-        s2 = search(query, 'ipsum', vector=self.TextMultiItem.content_vector)
-        assert s2.first().name == 'index'
+
+    def test_without_auto_index(self):
+        indexes = self.TextMultiItem.__table__.indexes
+        assert indexes == set()

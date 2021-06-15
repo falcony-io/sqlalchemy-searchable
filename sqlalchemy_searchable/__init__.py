@@ -9,7 +9,7 @@ from sqlalchemy_utils import TSVectorType
 
 from .vectorizers import Vectorizer
 
-__version__ = '1.4.0'
+__version__ = '1.4.1'
 
 
 vectorizer = Vectorizer()
@@ -240,6 +240,7 @@ class SearchManager():
         'search_trigger_function_name': '{table}_{column}_update',
         'regconfig': 'pg_catalog.english',
         'weights': (),
+        'auto_index': True
     }
 
     def __init__(self, options={}):
@@ -293,7 +294,8 @@ class SearchManager():
             if column in self.processed_columns:
                 continue
 
-            self.append_index(cls, column)
+            if self.option(column, 'auto_index'):
+                self.append_index(cls, column)
 
             self.processed_columns.append(column)
 

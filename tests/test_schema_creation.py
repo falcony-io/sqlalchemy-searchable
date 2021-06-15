@@ -29,6 +29,6 @@ class TestSearchVectorWithoutColumns(SchemaTestCase):
 
             name = sa.Column(sa.Unicode(255))
 
-            search_vector = sa.Column(TSVectorType())
+            search_vector = sa.Column(TSVectorType(auto_index=True))
 
             content = sa.Column(sa.UnicodeText)

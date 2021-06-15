@@ -55,7 +55,8 @@ class TestCase(object):
         return {
             'remove_symbols': self.remove_symbols,
             'search_trigger_name': self.search_trigger_name,
-            'search_trigger_function_name': self.search_trigger_function_name
+            'search_trigger_function_name': self.search_trigger_function_name,
+            'auto_index': True
         }
 
     def create_tables(self):
