@@ -148,9 +148,7 @@ Now consider a situation where we want to find all articles, where either articl
         session.query(Article)
         .join(Category)
         .filter(
-            combined_search_vector.match(
-                sa.func.tsq_parse(search_query)
-            )
+            combined_search_vector.match(search_query)
         )
     )
 
