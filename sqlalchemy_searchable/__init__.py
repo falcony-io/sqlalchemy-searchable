@@ -259,7 +259,7 @@ class SearchManager():
     def search_function_ddl(self, column):
         def after_create(target, connection, **kw):
             clause = CreateSearchFunctionSQL(column, conn=connection)
-            connection.execute(str(clause), **clause.params)
+            connection.exec_driver_sql(str(clause), clause.params)
         return after_create
 
     def search_trigger_ddl(self, column):
@@ -463,11 +463,11 @@ def sync_trigger(
     ]
     for class_ in classes:
         sql = class_(**params)
-        conn.execute(str(sql), **sql.params)
+        conn.exec_driver_sql(str(sql), sql.params)
     update_sql = table.update().values(
         {indexed_columns[0]: sa.text(indexed_columns[0])}
     )
-    conn.execute(update_sql)
+    conn.exec_driver_sql(update_sql)
 
 
 def drop_trigger(
