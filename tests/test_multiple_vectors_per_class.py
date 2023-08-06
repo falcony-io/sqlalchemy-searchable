@@ -27,7 +27,9 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
 
             name_vector = sa.Column(TSVectorType('name', auto_index=True))
 
-            content_vector = sa.Column(TSVectorType('content', auto_index=True))
+            content_vector = sa.Column(
+                TSVectorType('content', auto_index=True)
+            )
 
 
 class TestMultipleSearchVectorsSearchFunction(TestCase):
@@ -42,7 +44,9 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
             name = sa.Column(sa.Unicode(255))
             content = sa.Column(sa.UnicodeText)
             name_vector = sa.Column(TSVectorType('name', auto_index=False))
-            content_vector = sa.Column(TSVectorType('content', auto_index=False))
+            content_vector = sa.Column(
+                TSVectorType('content', auto_index=False)
+            )
 
         self.TextMultiItem = TextMultiItem
 

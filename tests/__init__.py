@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import inspect
 import itertools as it
+import os
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine
@@ -18,9 +19,14 @@ from sqlalchemy_searchable import (
     vectorizer
 )
 
-CONNECTION_STRING = (
-    'postgresql://postgres@localhost/sqlalchemy_searchable_test'
+DB_USER = os.environ.get('SQLALCHEMY_SEARCHABLE_TEST_USER', 'postgres')
+DB_PASSWORD = os.environ.get('SQLALCHEMY_SEARCHABLE_TEST_PASSWORD', '')
+DB_NAME = os.environ.get(
+    'SQLALCHEMY_SEARCHABLE_TEST_DB',
+    'sqlalchemy_searchable_test'
 )
+
+CONNECTION_STRING = f'postgresql://{DB_USER}:{DB_PASSWORD}@localhost/{DB_NAME}'
 
 try:
     import __pypy__
