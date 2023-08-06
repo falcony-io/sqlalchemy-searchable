@@ -6,7 +6,7 @@ Installation
     pip install SQLAlchemy-Searchable
 
 
-Supported versions are python 2.7 and 3.3+.
+Supported versions are Python 3.8 and newer.
 
 
 QuickStart

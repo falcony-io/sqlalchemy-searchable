@@ -3,6 +3,10 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+Unreleased
+^^^^^^^^^^
+
+- **BREAKING CHANGE**: Drop support for Python 3.6 and 3.7
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^

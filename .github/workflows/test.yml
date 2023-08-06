@@ -33,9 +33,6 @@ jobs:
           - name: "Python 3.8"
             python: "3.8"
 
-          - name: "Python 3.7"
-            python: "3.7"
-
           - name: "PyPy"
             python: "pypy3.9"
 
