@@ -37,7 +37,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     platforms='any',
-    python_requires='>=3.6',
+    python_requires='>=3.8',
     install_requires=[
         'SQLAlchemy>=1.3.0',
         'SQLAlchemy-Utils>=0.37.5',
@@ -50,8 +50,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
