@@ -46,7 +46,6 @@ class SyncTriggerTestCase(TestCase):
         articles = sa.Table(
             "article",
             self.Base.metadata,
-            autoload=True,
             autoload_with=self.session.bind,
         )
 
