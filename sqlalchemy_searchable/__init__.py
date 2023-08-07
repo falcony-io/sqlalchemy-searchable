@@ -119,7 +119,7 @@ class SQLConstruct:
         else:
             value = vectorizer_func(value)
         value = sa.func.coalesce(value, sa.text("''"))
-        value = sa.func.to_tsvector(self.options["regconfig"], value)
+        value = sa.func.to_tsvector(sa.literal(self.options["regconfig"]), value)
         if column.name in self.options["weights"]:
             weight = self.options["weights"][column.name]
             value = sa.func.setweight(value, weight)

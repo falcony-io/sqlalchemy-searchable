@@ -57,5 +57,5 @@ jobs:
       - name: Run tests
         env:
           SQLALCHEMY_SEARCHABLE_TEST_PASSWORD: postgres
-          TOXENV: py-sqla1.4
+          TOXENV: py-sqla1.4, py-sqla2.0
         run: tox
