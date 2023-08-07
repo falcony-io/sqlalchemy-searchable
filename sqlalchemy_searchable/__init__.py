@@ -71,7 +71,7 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
             sa.desc(
                 sa.func.ts_rank_cd(
                     vector,
-                    sa.func.parse_websearch(search_query)
+                    sa.func.parse_websearch(regconfig, search_query)
                 )
             )
         )
