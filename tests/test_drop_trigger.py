@@ -7,22 +7,24 @@ class DropTriggerTestCase(TestCase):
         pass
 
     def create_tables(self):
-        conn = self.session.bind
-        conn.execute(
-            """CREATE TABLE article
-            (name TEXT, content TEXT, "current_user" TEXT,
-            search_vector TSVECTOR)
-            """
-        )
+        with self.engine.begin() as conn:
+            conn.execute(
+                """
+                CREATE TABLE article (
+                    name TEXT,
+                    content TEXT,
+                    "current_user" TEXT,
+                    search_vector TSVECTOR
+                )
+                """
+            )
 
     def drop_tables(self):
-        self.session.bind.execute("DROP TABLE article")
+        with self.engine.begin() as conn:
+            conn.execute("DROP TABLE article")
 
     def test_drops_triggers_and_functions(self):
-        conn = self.session.bind
-        sync_trigger(conn, "article", "search_vector", ["name", "content"])
-
-        def trigger_exist():
+        def trigger_exist(conn):
             return conn.execute(
                 """SELECT COUNT(*)
                    FROM pg_trigger
@@ -30,7 +32,7 @@ class DropTriggerTestCase(TestCase):
                 """
             ).scalar()
 
-        def function_exist():
+        def function_exist(conn):
             return conn.execute(
                 """SELECT COUNT(*)
                    FROM pg_proc
@@ -38,17 +40,16 @@ class DropTriggerTestCase(TestCase):
                    """
             ).scalar()
 
-        assert trigger_exist() == 1
-        assert function_exist() == 1
+        with self.engine.begin() as conn:
+            sync_trigger(conn, "article", "search_vector", ["name", "content"])
 
-        drop_trigger(
-            conn,
-            "article",
-            "search_vector",
-        )
+            assert trigger_exist(conn) == 1
+            assert function_exist(conn) == 1
 
-        assert trigger_exist() == 0
-        assert function_exist() == 0
+            drop_trigger(conn, "article", "search_vector")
+
+            assert trigger_exist(conn) == 0
+            assert function_exist(conn) == 0
 
 
 create_test_cases(DropTriggerTestCase)

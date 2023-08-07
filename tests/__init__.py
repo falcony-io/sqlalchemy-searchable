@@ -42,7 +42,8 @@ class TestCase:
 
     def setup_method(self, method):
         self.engine = create_engine(CONNECTION_STRING)
-        self.engine.execute("CREATE EXTENSION IF NOT EXISTS hstore")
+        with self.engine.begin() as conn:
+            conn.execute("CREATE EXTENSION IF NOT EXISTS hstore")
         # self.engine.echo = True
         self.Base = declarative_base()
         make_searchable(self.Base.metadata)
