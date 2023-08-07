@@ -391,7 +391,7 @@ def sync_trigger(
     """
     if metadata is None:
         metadata = sa.MetaData()
-    table = sa.Table(table_name, metadata, autoload=True, autoload_with=conn)
+    table = sa.Table(table_name, metadata, autoload_with=conn)
     params = dict(
         tsvector_column=getattr(table.c, tsvector_column),
         indexed_columns=indexed_columns,
@@ -444,7 +444,7 @@ def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None)
     """
     if metadata is None:
         metadata = sa.MetaData()
-    table = sa.Table(table_name, metadata, autoload=True, autoload_with=conn)
+    table = sa.Table(table_name, metadata, autoload_with=conn)
     params = dict(
         tsvector_column=getattr(table.c, tsvector_column), options=options, conn=conn
     )
