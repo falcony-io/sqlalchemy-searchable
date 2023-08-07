@@ -4,8 +4,7 @@ import os
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy_utils.types import TSVectorType
