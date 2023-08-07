@@ -41,15 +41,15 @@ class TestCase:
     search_trigger_function_name = "{table}_{column}_update"
 
     def setup_method(self, method):
-        self.engine = create_engine(CONNECTION_STRING)
+        self.engine = create_engine(CONNECTION_STRING, future=True)
         with self.engine.begin() as conn:
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS hstore"))
         # self.engine.echo = True
         self.Base = declarative_base()
         make_searchable(self.Base.metadata)
         self.create_models()
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        Session = sessionmaker(bind=self.engine, future=True)
+        self.session = Session(future=True)
         sa.orm.configure_mappers()
         self.create_tables()
 
