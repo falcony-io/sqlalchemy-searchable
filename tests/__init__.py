@@ -16,7 +16,7 @@ from sqlalchemy_searchable import (
     remove_listeners,
     search_manager,
     SearchQueryMixin,
-    vectorizer
+    vectorizer,
 )
 
 DB_USER = os.environ.get('SQLALCHEMY_SEARCHABLE_TEST_USER', 'postgres')
