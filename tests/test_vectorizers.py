@@ -10,14 +10,14 @@ from tests import TestCase
 class TestTypeVectorizers(TestCase):
     def create_models(self):
         class Article(self.Base):
-            __tablename__ = 'textitem'
+            __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
             name = sa.Column(HSTORE)
 
             search_vector = sa.Column(
-                TSVectorType('name', 'content', regconfig='simple')
+                TSVectorType("name", "content", regconfig="simple")
             )
 
             content = sa.Column(sa.UnicodeText)
@@ -29,38 +29,36 @@ class TestTypeVectorizers(TestCase):
         self.Article = Article
 
     def test_uses_column_vectorizer(self):
-        article = self.Article(
-            name={'fi': 'Joku artikkeli', 'en': 'Some article'}
-        )
+        article = self.Article(name={"fi": "Joku artikkeli", "en": "Some article"})
         self.session.add(article)
         self.session.commit()
         self.session.refresh(article)
-        assert 'article' in article.search_vector
-        assert 'joku' in article.search_vector
-        assert 'some' in article.search_vector
-        assert 'artikkeli' in article.search_vector
-        assert 'fi' not in article.search_vector
-        assert 'en' not in article.search_vector
+        assert "article" in article.search_vector
+        assert "joku" in article.search_vector
+        assert "some" in article.search_vector
+        assert "artikkeli" in article.search_vector
+        assert "fi" not in article.search_vector
+        assert "en" not in article.search_vector
 
 
 class TestColumnVectorizer(TestCase):
     def create_models(self):
         class Article(self.Base):
-            __tablename__ = 'textitem'
+            __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
             name = sa.Column(HSTORE)
 
             search_vector = sa.Column(
-                TSVectorType('name', 'content', regconfig='simple')
+                TSVectorType("name", "content", regconfig="simple")
             )
 
             content = sa.Column(sa.String)
 
         @vectorizer(Article.content)
         def vectorize_content(column):
-            return sa.func.replace(column, 'bad', 'good')
+            return sa.func.replace(column, "bad", "good")
 
         @vectorizer(HSTORE)
         def hstore_vectorizer(column):
@@ -70,17 +68,17 @@ class TestColumnVectorizer(TestCase):
 
     def test_column_vectorizer_has_priority_over_type_vectorizer(self):
         article = self.Article(
-            name={'fi': 'Joku artikkeli', 'en': 'Some article'},
-            content='bad'
+            name={"fi": "Joku artikkeli", "en": "Some article"}, content="bad"
         )
         self.session.add(article)
         self.session.commit()
         self.session.refresh(article)
-        for word in ['article', 'artikkeli', 'good', 'joku', 'some']:
+        for word in ["article", "artikkeli", "good", "joku", "some"]:
             assert word in article.search_vector
 
     def test_unknown_vectorizable_type(self):
         with raises(TypeError):
-            @vectorizer('some unknown type')
+
+            @vectorizer("some unknown type")
             def my_vectorizer(column):
                 pass

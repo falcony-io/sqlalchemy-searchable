@@ -7,17 +7,17 @@ from tests import SchemaTestCase, TestCase
 
 class TestMultipleSearchVectorsPerClass(SchemaTestCase):
     should_create_indexes = [
-        'ix_textitem_content_vector',
-        'ix_textitem_name_vector',
+        "ix_textitem_content_vector",
+        "ix_textitem_name_vector",
     ]
     should_create_triggers = [
-        'textitem_content_vector_trigger',
-        'textitem_name_vector_trigger',
+        "textitem_content_vector_trigger",
+        "textitem_name_vector_trigger",
     ]
 
     def create_models(self):
         class TextItem(self.Base):
-            __tablename__ = 'textitem'
+            __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
@@ -25,11 +25,9 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
 
             content = sa.Column(sa.UnicodeText)
 
-            name_vector = sa.Column(TSVectorType('name', auto_index=True))
+            name_vector = sa.Column(TSVectorType("name", auto_index=True))
 
-            content_vector = sa.Column(
-                TSVectorType('content', auto_index=True)
-            )
+            content_vector = sa.Column(TSVectorType("content", auto_index=True))
 
 
 class TestMultipleSearchVectorsSearchFunction(TestCase):
@@ -37,33 +35,27 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
         TestCase.create_models(self)
 
         class TextMultiItem(self.Base):
-            __tablename__ = 'textmultiitem'
+            __tablename__ = "textmultiitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
             name = sa.Column(sa.Unicode(255))
             content = sa.Column(sa.UnicodeText)
-            name_vector = sa.Column(TSVectorType('name', auto_index=False))
-            content_vector = sa.Column(
-                TSVectorType('content', auto_index=False)
-            )
+            name_vector = sa.Column(TSVectorType("name", auto_index=False))
+            content_vector = sa.Column(TSVectorType("content", auto_index=False))
 
         self.TextMultiItem = TextMultiItem
 
     def setup_method(self, method):
         TestCase.setup_method(self, method)
-        self.session.add(
-            self.TextMultiItem(name='index', content='lorem ipsum')
-        )
-        self.session.add(
-            self.TextMultiItem(name='ipsum', content='admin content')
-        )
+        self.session.add(self.TextMultiItem(name="index", content="lorem ipsum"))
+        self.session.add(self.TextMultiItem(name="ipsum", content="admin content"))
         self.session.commit()
 
     def test_choose_vector(self):
         query = self.TextItemQuery(self.TextMultiItem, self.session)
-        s1 = search(query, 'ipsum', vector=self.TextMultiItem.name_vector)
-        assert s1.first().name == 'ipsum'
+        s1 = search(query, "ipsum", vector=self.TextMultiItem.name_vector)
+        assert s1.first().name == "ipsum"
 
     def test_without_auto_index(self):
         indexes = self.TextMultiItem.__table__.indexes

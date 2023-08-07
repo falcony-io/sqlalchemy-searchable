@@ -9,23 +9,18 @@ class DropTriggerTestCase(TestCase):
     def create_tables(self):
         conn = self.session.bind
         conn.execute(
-            '''CREATE TABLE article
+            """CREATE TABLE article
             (name TEXT, content TEXT, "current_user" TEXT,
             search_vector TSVECTOR)
-            '''
+            """
         )
 
     def drop_tables(self):
-        self.session.bind.execute('DROP TABLE article')
+        self.session.bind.execute("DROP TABLE article")
 
     def test_drops_triggers_and_functions(self):
         conn = self.session.bind
-        sync_trigger(
-            conn,
-            'article',
-            'search_vector',
-            ['name', 'content']
-        )
+        sync_trigger(conn, "article", "search_vector", ["name", "content"])
 
         def trigger_exist():
             return conn.execute(
@@ -48,8 +43,8 @@ class DropTriggerTestCase(TestCase):
 
         drop_trigger(
             conn,
-            'article',
-            'search_vector',
+            "article",
+            "search_vector",
         )
 
         assert trigger_exist() == 0
