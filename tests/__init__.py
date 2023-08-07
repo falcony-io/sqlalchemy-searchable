@@ -3,7 +3,7 @@ import itertools as it
 import os
 
 import sqlalchemy as sa
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.query import Query
@@ -117,27 +117,31 @@ class SchemaTestCase(TestCase):
 
     def test_creates_search_index(self):
         rows = self.session.execute(
-            """SELECT relname
-            FROM pg_class
-            WHERE oid IN (
-                SELECT indexrelid
-                FROM pg_index, pg_class
-                WHERE pg_class.relname = 'textitem'
-                    AND pg_class.oid = pg_index.indrelid
-                    AND indisunique != 't'
-                    AND indisprimary != 't'
-            ) ORDER BY relname"""
+            text(
+                """SELECT relname
+                FROM pg_class
+                WHERE oid IN (
+                    SELECT indexrelid
+                    FROM pg_index, pg_class
+                    WHERE pg_class.relname = 'textitem'
+                        AND pg_class.oid = pg_index.indrelid
+                        AND indisunique != 't'
+                        AND indisprimary != 't'
+                ) ORDER BY relname"""
+            )
         ).fetchall()
         assert self.should_create_indexes == [row[0] for row in rows]
 
     def test_creates_search_trigger(self):
         rows = self.session.execute(
-            """SELECT DISTINCT trigger_name
-            FROM information_schema.triggers
-            WHERE event_object_table = 'textitem'
-            AND trigger_schema NOT IN
-                ('pg_catalog', 'information_schema')
-            ORDER BY trigger_name"""
+            text(
+                """SELECT DISTINCT trigger_name
+                FROM information_schema.triggers
+                WHERE event_object_table = 'textitem'
+                AND trigger_schema NOT IN
+                    ('pg_catalog', 'information_schema')
+                ORDER BY trigger_name"""
+            )
         ).fetchall()
         assert self.should_create_triggers == [row[0] for row in rows]
 

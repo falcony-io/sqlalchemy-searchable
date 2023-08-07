@@ -1,6 +1,7 @@
 import re
 
 import sqlalchemy as sa
+from sqlalchemy import text
 from sqlalchemy_utils import TSVectorType
 
 from sqlalchemy_searchable import search
@@ -29,9 +30,8 @@ class TestCreateWeightedSearchVector(WeightedBase, SchemaTestCase):
 
     def test_search_function_weights(self):
         func_name = "textitem_search_vector_update"
-        sql = """SELECT proname,prosrc FROM pg_proc
-                 WHERE proname='{name}';"""
-        name, src = self.session.execute(sql.format(name=func_name)).fetchone()
+        sql = text("SELECT proname,prosrc FROM pg_proc WHERE proname=:name")
+        name, src = self.session.execute(sql, {"name": func_name}).fetchone()
         pattern = (
             r"setweight\(to_tsvector\(.+?"
             r"coalesce\(NEW.(\w+).+?"
