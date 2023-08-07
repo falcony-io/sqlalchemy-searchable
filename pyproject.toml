@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
     "SQLAlchemy-Utils>=0.37.5",
-    "SQLAlchemy>=1.4,<1.5",
+    "SQLAlchemy>=1.4",
 ]
 
 [project.urls]
@@ -48,11 +48,6 @@ include = [
 ]
 exclude = [
     "/docs/_build",
-]
-
-[tool.pytest.ini_options]
-filterwarnings = [
-    "error::sqlalchemy.exc.RemovedIn20Warning",
 ]
 
 [tool.ruff]

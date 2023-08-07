@@ -14,6 +14,7 @@ Unreleased
 - Remove ``validators`` dependency
 - Add support for Python 3.10 and 3.11
 - Use the ``pyproject.toml`` standard to specify project metadata, dependencies and tool configuration. Use Hatch to build the project.
+- Add support for SQLAlchemy 2.0
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^
