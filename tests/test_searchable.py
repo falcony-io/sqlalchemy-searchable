@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from sqlalchemy_searchable import search, search_manager
 from tests import create_test_cases, TestCase
 
@@ -8,20 +7,20 @@ class SearchQueryMixinTestCase(TestCase):
         TestCase.setup_method(self, method)
         self.items = [
             self.TextItem(
-                name=u'index',
-                content=u'some content'
+                name='index',
+                content='some content'
             ),
             self.TextItem(
-                name=u'admin',
-                content=u'admin content'
+                name='admin',
+                content='admin content'
             ),
             self.TextItem(
-                name=u'home',
-                content=u'this is the home page of someone@example.com'
+                name='home',
+                content='this is the home page of someone@example.com'
             ),
             self.TextItem(
-                name=u'not a some content',
-                content=u'not a name'
+                name='not a some content',
+                content='not a name'
             )
         ]
         self.session.add_all(self.items)
@@ -41,8 +40,8 @@ class SearchQueryMixinTestCase(TestCase):
 
     def test_term_splitting_supports_multiple_spaces(self):
         query = self.TextItemQuery(self.TextItem, self.session)
-        assert query.search('content  some').first().name == u'index'
-        assert query.search('content   some').first().name == u'index'
+        assert query.search('content  some').first().name == 'index'
+        assert query.search('content   some').first().name == 'index'
         assert query.search('  ').count() == 4
 
     def test_search_by_email(self):
@@ -52,7 +51,7 @@ class SearchQueryMixinTestCase(TestCase):
 
     def test_supports_regconfig_parameter(self):
         query = self.TextItemQuery(self.TextItem, self.session)
-        query = query.search(u'orrimorri', regconfig='finnish')
+        query = query.search('orrimorri', regconfig='finnish')
         assert (
             'parse_websearch(%(parse_websearch_1)s, %(parse_websearch_2)s)'
             in str(query.statement.compile(self.session.bind))
@@ -80,20 +79,20 @@ class TestUsesGlobalConfigOptionsAsFallbacks(TestCase):
         TestCase.setup_method(self, method)
         self.items = [
             self.TextItem(
-                name=u'index',
-                content=u'some content'
+                name='index',
+                content='some content'
             ),
             self.TextItem(
-                name=u'admin',
-                content=u'admin content'
+                name='admin',
+                content='admin content'
             ),
             self.TextItem(
-                name=u'home',
-                content=u'this is the home page of someone@example.com'
+                name='home',
+                content='this is the home page of someone@example.com'
             ),
             self.TextItem(
-                name=u'not a some content',
-                content=u'not a name'
+                name='not a some content',
+                content='not a name'
             )
         ]
         self.session.add_all(self.items)
@@ -114,10 +113,10 @@ create_test_cases(SearchQueryMixinTestCase)
 class TestSearchableInheritance(TestCase):
     def setup_method(self, method):
         TestCase.setup_method(self, method)
-        self.session.add(self.Article(name=u'index', content=u'some content'))
-        self.session.add(self.Article(name=u'admin', content=u'admin content'))
+        self.session.add(self.Article(name='index', content='some content'))
+        self.session.add(self.Article(name='admin', content='admin content'))
         self.session.add(
-            self.Article(name=u'home', content=u'this is the home page')
+            self.Article(name='home', content='this is the home page')
         )
         self.session.commit()
 

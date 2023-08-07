@@ -103,7 +103,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.type_api import TypeEngine
 
 
-class Vectorizer(object):
+class Vectorizer:
     def __init__(self, type_vectorizers=None, column_vectorizers=None):
         self.type_vectorizers = (
             {} if type_vectorizers is None else type_vectorizers

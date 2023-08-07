@@ -7,7 +7,7 @@ from sqlalchemy_searchable import search
 from tests import SchemaTestCase, TestCase
 
 
-class WeightedBase(object):
+class WeightedBase:
     def create_models(self):
         class WeightedTextItem(self.Base):
             __tablename__ = 'textitem'
@@ -27,8 +27,8 @@ class WeightedBase(object):
 
 
 class TestCreateWeightedSearchVector(WeightedBase, SchemaTestCase):
-    should_create_indexes = [u'ix_textitem_search_vector']
-    should_create_triggers = [u'textitem_search_vector_trigger']
+    should_create_indexes = ['ix_textitem_search_vector']
+    should_create_triggers = ['textitem_search_vector_trigger']
 
     def test_search_function_weights(self):
         func_name = 'textitem_search_vector_update'
@@ -47,10 +47,10 @@ class TestWeightedSearchFunction(WeightedBase, TestCase):
     def setup_method(self, method):
         TestCase.setup_method(self, method)
         self.session.add(
-            self.WeightedTextItem(name=u'Gort', content=u'Klaatu barada nikto')
+            self.WeightedTextItem(name='Gort', content='Klaatu barada nikto')
         )
         self.session.add(
-            self.WeightedTextItem(name=u'Klaatu', content=u'barada nikto')
+            self.WeightedTextItem(name='Klaatu', content='barada nikto')
         )
         self.session.commit()
 

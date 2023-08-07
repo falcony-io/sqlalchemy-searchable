@@ -6,10 +6,10 @@ from tests import SchemaTestCase
 
 class TestSearchableWithSingleTableInheritance(SchemaTestCase):
     should_create_indexes = [
-        u'ix_textitem_search_vector',
+        'ix_textitem_search_vector',
     ]
     should_create_triggers = [
-        u'textitem_search_vector_trigger',
+        'textitem_search_vector_trigger',
     ]
 
     def create_models(self):
