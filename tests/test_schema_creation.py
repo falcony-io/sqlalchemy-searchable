@@ -6,24 +6,24 @@ from tests import SchemaTestCase
 
 class TestAutomaticallyCreatedSchemaItems(SchemaTestCase):
     should_create_indexes = [
-        'ix_textitem_content_search_vector',
-        'ix_textitem_search_vector',
+        "ix_textitem_content_search_vector",
+        "ix_textitem_search_vector",
     ]
     should_create_triggers = [
-        'textitem_content_search_vector_trigger',
-        'textitem_search_vector_trigger',
+        "textitem_content_search_vector_trigger",
+        "textitem_search_vector_trigger",
     ]
 
 
 class TestSearchVectorWithoutColumns(SchemaTestCase):
     should_create_indexes = [
-        'ix_textitem_search_vector',
+        "ix_textitem_search_vector",
     ]
     should_create_triggers = []
 
     def create_models(self):
         class TextItem(self.Base):
-            __tablename__ = 'textitem'
+            __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 

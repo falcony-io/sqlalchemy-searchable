@@ -11,7 +11,7 @@ class TestClassConfiguration(TestCase):
         sa.orm.configure_mappers()
 
         class SomeClass(self.Base):
-            __tablename__ = 'some_class'
+            __tablename__ = "some_class"
             id = sa.Column(sa.Integer, primary_key=True)
 
         sa.orm.configure_mappers()

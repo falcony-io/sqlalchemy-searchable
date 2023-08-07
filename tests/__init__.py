@@ -18,14 +18,11 @@ from sqlalchemy_searchable import (
     vectorizer,
 )
 
-DB_USER = os.environ.get('SQLALCHEMY_SEARCHABLE_TEST_USER', 'postgres')
-DB_PASSWORD = os.environ.get('SQLALCHEMY_SEARCHABLE_TEST_PASSWORD', '')
-DB_NAME = os.environ.get(
-    'SQLALCHEMY_SEARCHABLE_TEST_DB',
-    'sqlalchemy_searchable_test'
-)
+DB_USER = os.environ.get("SQLALCHEMY_SEARCHABLE_TEST_USER", "postgres")
+DB_PASSWORD = os.environ.get("SQLALCHEMY_SEARCHABLE_TEST_PASSWORD", "")
+DB_NAME = os.environ.get("SQLALCHEMY_SEARCHABLE_TEST_DB", "sqlalchemy_searchable_test")
 
-CONNECTION_STRING = f'postgresql://{DB_USER}:{DB_PASSWORD}@localhost/{DB_NAME}'
+CONNECTION_STRING = f"postgresql://{DB_USER}:{DB_PASSWORD}@localhost/{DB_NAME}"
 
 try:
     import __pypy__
@@ -35,17 +32,18 @@ except ImportError:
 
 if __pypy__:
     from psycopg2cffi import compat
+
     compat.register()
 
 
 class TestCase:
-    remove_symbols = '-@.'
-    search_trigger_name = '{table}_{column}_trigger'
-    search_trigger_function_name = '{table}_{column}_update'
+    remove_symbols = "-@."
+    search_trigger_name = "{table}_{column}_trigger"
+    search_trigger_function_name = "{table}_{column}_update"
 
     def setup_method(self, method):
         self.engine = create_engine(CONNECTION_STRING)
-        self.engine.execute('CREATE EXTENSION IF NOT EXISTS hstore')
+        self.engine.execute("CREATE EXTENSION IF NOT EXISTS hstore")
         # self.engine.echo = True
         self.Base = declarative_base()
         make_searchable(self.Base.metadata)
@@ -58,10 +56,10 @@ class TestCase:
     @property
     def options(self):
         return {
-            'remove_symbols': self.remove_symbols,
-            'search_trigger_name': self.search_trigger_name,
-            'search_trigger_function_name': self.search_trigger_function_name,
-            'auto_index': True
+            "remove_symbols": self.remove_symbols,
+            "search_trigger_name": self.search_trigger_name,
+            "search_trigger_function_name": self.search_trigger_function_name,
+            "auto_index": True,
         }
 
     def create_tables(self):
@@ -85,34 +83,26 @@ class TestCase:
             pass
 
         class TextItem(self.Base):
-            __tablename__ = 'textitem'
+            __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
             name = sa.Column(sa.Unicode(255))
 
-            search_vector = sa.Column(
-                TSVectorType('name', 'content', **self.options)
-            )
-            content_search_vector = sa.Column(
-                TSVectorType('content', **self.options)
-            )
+            search_vector = sa.Column(TSVectorType("name", "content", **self.options))
+            content_search_vector = sa.Column(TSVectorType("content", **self.options))
 
             content = sa.Column(sa.UnicodeText)
 
         class Order(self.Base):
-            __tablename__ = 'order'
+            __tablename__ = "order"
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
             name = sa.Column(sa.Unicode(255))
-            search_vector = sa.Column(
-                TSVectorType('name', **self.options)
-            )
+            search_vector = sa.Column(TSVectorType("name", **self.options))
 
         class Article(TextItem):
-            __tablename__ = 'article'
-            id = sa.Column(
-                sa.Integer, sa.ForeignKey(TextItem.id), primary_key=True
-            )
+            __tablename__ = "article"
+            id = sa.Column(sa.Integer, sa.ForeignKey(TextItem.id), primary_key=True)
             created_at = sa.Column(sa.DateTime)
 
         self.TextItemQuery = TextItemQuery
@@ -153,14 +143,11 @@ class SchemaTestCase(TestCase):
 
 
 setting_variants = {
-    'search_trigger_name': [
-        '{table}_{column}_trigger',
-        '{table}_{column}_trg'
+    "search_trigger_name": ["{table}_{column}_trigger", "{table}_{column}_trg"],
+    "search_trigger_function_name": [
+        "{table}_{column}_update_trigger",
+        "{table}_{column}_update",
     ],
-    'search_trigger_function_name': [
-        '{table}_{column}_update_trigger',
-        '{table}_{column}_update'
-    ]
 }
 
 
@@ -179,24 +166,15 @@ def create_test_cases(base_class, setting_variants=setting_variants):
     names = sorted(setting_variants)
     combinations = [
         dict(zip(names, prod))
-        for prod in
-        it.product(*(setting_variants[name] for name in names))
+        for prod in it.product(*(setting_variants[name] for name in names))
     ]
 
     # Get the module where this function was called in.
     frm = inspect.stack()[1]
     module = inspect.getmodule(frm[0])
 
-    class_suffix = base_class.__name__[0:-len('TestCase')]
+    class_suffix = base_class.__name__[0 : -len("TestCase")]
     for index, combination in enumerate(combinations):
-        class_name = 'Test%s%i' % (class_suffix, index)
+        class_name = "Test%s%i" % (class_suffix, index)
         # Assign a new test case class for current module.
-        setattr(
-            module,
-            class_name,
-            type(
-                class_name,
-                (base_class, ),
-                combination
-            )
-        )
+        setattr(module, class_name, type(class_name, (base_class,), combination))

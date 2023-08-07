@@ -9,7 +9,7 @@ from sqlalchemy_utils import TSVectorType
 
 from .vectorizers import Vectorizer
 
-__version__ = '1.4.1'
+__version__ = "1.4.1"
 
 
 vectorizer = Vectorizer()
@@ -25,20 +25,13 @@ class SearchQueryMixin:
         :param regconfig: postgresql regconfig to be used
         :param sort: order results by relevance (quality of hit)
         """
-        return search(
-            self,
-            search_query,
-            vector=vector,
-            regconfig=regconfig,
-            sort=sort
-        )
+        return search(self, search_query, vector=vector, regconfig=regconfig, sort=sort)
 
 
 def inspect_search_vectors(entity):
     return [
         getattr(entity, key).property.columns[0]
-        for key, column
-        in sa.inspect(entity).columns.items()
+        for key, column in sa.inspect(entity).columns.items()
         if isinstance(column.type, TSVectorType)
     ]
 
@@ -56,24 +49,19 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
         return query
 
     if vector is None:
-        entity = query.column_descriptions[0]['entity']
+        entity = query.column_descriptions[0]["entity"]
         search_vectors = inspect_search_vectors(entity)
         vector = search_vectors[0]
 
     if regconfig is None:
-        regconfig = search_manager.options['regconfig']
+        regconfig = search_manager.options["regconfig"]
 
     query = query.filter(
-        vector.op('@@')(sa.func.parse_websearch(regconfig, search_query))
+        vector.op("@@")(sa.func.parse_websearch(regconfig, search_query))
     )
     if sort:
         query = query.order_by(
-            sa.desc(
-                sa.func.ts_rank_cd(
-                    vector,
-                    sa.func.parse_websearch(search_query)
-                )
-            )
+            sa.desc(sa.func.ts_rank_cd(vector, sa.func.parse_websearch(search_query)))
         )
 
     return query.params(term=search_query)
@@ -86,20 +74,14 @@ def quote_identifier(identifier):
 
 
 class SQLConstruct:
-    def __init__(
-        self,
-        tsvector_column,
-        conn=None,
-        indexed_columns=None,
-        options=None
-    ):
+    def __init__(self, tsvector_column, conn=None, indexed_columns=None, options=None):
         self.table = tsvector_column.table
         self.tsvector_column = tsvector_column
         self.conn = conn
         self.options = self.init_options(options)
         if indexed_columns:
             self.indexed_columns = list(indexed_columns)
-        elif hasattr(self.tsvector_column.type, 'columns'):
+        elif hasattr(self.tsvector_column.type, "columns"):
             self.indexed_columns = list(self.tsvector_column.type.columns)
         else:
             self.indexed_columns = None
@@ -125,22 +107,20 @@ class SQLConstruct:
 
     @property
     def search_function_name(self):
-        return self.options['search_trigger_function_name'].format(
-            table=self.table.name,
-            column=self.tsvector_column.name
+        return self.options["search_trigger_function_name"].format(
+            table=self.table.name, column=self.tsvector_column.name
         )
 
     @property
     def search_trigger_name(self):
-        return self.options['search_trigger_name'].format(
-            table=self.table.name,
-            column=self.tsvector_column.name
+        return self.options["search_trigger_name"].format(
+            table=self.table.name, column=self.tsvector_column.name
         )
 
     def column_vector(self, column):
         if column.name in RESERVED_WORDS:
             column.name = quote_identifier(column.name)
-        value = sa.text(f'NEW.{column.name}')
+        value = sa.text(f"NEW.{column.name}")
         try:
             vectorizer_func = vectorizer[column]
         except KeyError:
@@ -148,9 +128,9 @@ class SQLConstruct:
         else:
             value = vectorizer_func(value)
         value = sa.func.coalesce(value, sa.text("''"))
-        value = sa.func.to_tsvector(self.options['regconfig'], value)
-        if column.name in self.options['weights']:
-            weight = self.options['weights'][column.name]
+        value = sa.func.to_tsvector(self.options["regconfig"], value)
+        if column.name in self.options["weights"]:
+            weight = self.options["weights"][column.name]
             value = sa.func.setweight(value, weight)
         return value
 
@@ -160,7 +140,7 @@ class SQLConstruct:
             self.column_vector(getattr(self.table.c, column_name))
             for column_name in self.indexed_columns
         )
-        concatenated = reduce(lambda x, y: x.op('||')(y), vectors)
+        concatenated = reduce(lambda x, y: x.op("||")(y), vectors)
         compiled = concatenated.compile(self.conn)
         self.params = compiled.params
         return compiled
@@ -181,21 +161,15 @@ class CreateSearchFunctionSQL(SQLConstruct):
 class CreateSearchTriggerSQL(SQLConstruct):
     @property
     def search_trigger_function_with_trigger_args(self):
-        if (
-            self.options['weights'] or
-            any(
-                getattr(self.table.c, column) in vectorizer
-                for column in self.indexed_columns
-            )
+        if self.options["weights"] or any(
+            getattr(self.table.c, column) in vectorizer
+            for column in self.indexed_columns
         ):
-            return self.search_function_name + '()'
-        return 'tsvector_update_trigger({arguments})'.format(
-            arguments=', '.join(
-                [
-                    self.tsvector_column.name,
-                    "'%s'" % self.options['regconfig']
-                ] +
-                self.indexed_columns
+            return self.search_function_name + "()"
+        return "tsvector_update_trigger({arguments})".format(
+            arguments=", ".join(
+                [self.tsvector_column.name, "'%s'" % self.options["regconfig"]]
+                + self.indexed_columns
             )
         )
 
@@ -204,34 +178,31 @@ class CreateSearchTriggerSQL(SQLConstruct):
             "CREATE TRIGGER {search_trigger_name}"
             " BEFORE UPDATE OR INSERT ON {table}"
             " FOR EACH ROW EXECUTE PROCEDURE"
-            " {procedure_ddl}"
-            .format(
+            " {procedure_ddl}".format(
                 search_trigger_name=self.search_trigger_name,
                 table=self.table_name,
-                procedure_ddl=(
-                    self.search_trigger_function_with_trigger_args
-                )
+                procedure_ddl=(self.search_trigger_function_with_trigger_args),
             )
         )
 
 
 class DropSearchFunctionSQL(SQLConstruct):
     def __str__(self):
-        return 'DROP FUNCTION IF EXISTS %s()' % self.search_function_name
+        return "DROP FUNCTION IF EXISTS %s()" % self.search_function_name
 
 
 class DropSearchTriggerSQL(SQLConstruct):
     def __str__(self):
-        return f'DROP TRIGGER IF EXISTS {self.search_trigger_name} ON {self.table_name}'
+        return f"DROP TRIGGER IF EXISTS {self.search_trigger_name} ON {self.table_name}"
 
 
 class SearchManager:
     default_options = {
-        'search_trigger_name': '{table}_{column}_trigger',
-        'search_trigger_function_name': '{table}_{column}_update',
-        'regconfig': 'pg_catalog.english',
-        'weights': (),
-        'auto_index': True
+        "search_trigger_name": "{table}_{column}_trigger",
+        "search_trigger_function_name": "{table}_{column}_update",
+        "regconfig": "pg_catalog.english",
+        "weights": (),
+        "auto_index": True,
     }
 
     def __init__(self, options={}):
@@ -251,6 +222,7 @@ class SearchManager:
         def after_create(target, connection, **kw):
             clause = CreateSearchFunctionSQL(column, conn=connection)
             connection.execute(str(clause), **clause.params)
+
         return after_create
 
     def search_trigger_ddl(self, column):
@@ -267,16 +239,13 @@ class SearchManager:
 
         :param table: SQLAlchemy Table
         """
-        return [
-            column for column in table.c
-            if isinstance(column.type, TSVectorType)
-        ]
+        return [column for column in table.c if isinstance(column.type, TSVectorType)]
 
     def append_index(self, cls, column):
         sa.Index(
-            '_'.join(('ix', column.table.name, column.name)),
+            "_".join(("ix", column.table.name, column.name)),
             column,
-            postgresql_using='gin'
+            postgresql_using="gin",
         )
 
     def process_mapper(self, mapper, cls):
@@ -285,7 +254,7 @@ class SearchManager:
             if column in self.processed_columns:
                 continue
 
-            if self.option(column, 'auto_index'):
+            if self.option(column, "auto_index"):
                 self.append_index(cls, column)
 
             self.processed_columns.append(column)
@@ -310,37 +279,25 @@ class SearchManager:
             # date.
             if column.type.columns:
                 table = column.table
-                if (
-                    self.option(column, 'weights') or
-                    vectorizer.contains_tsvector(column)
+                if self.option(column, "weights") or vectorizer.contains_tsvector(
+                    column
                 ):
-                    self.add_listener((
-                        table,
-                        'after_create',
-                        self.search_function_ddl(column)
-                    ))
-                    self.add_listener((
-                        table,
-                        'after_drop',
-                        DDL(str(DropSearchFunctionSQL(column)))
-                    ))
-                self.add_listener((
-                    table,
-                    'after_create',
-                    self.search_trigger_ddl(column)
-                ))
+                    self.add_listener(
+                        (table, "after_create", self.search_function_ddl(column))
+                    )
+                    self.add_listener(
+                        (table, "after_drop", DDL(str(DropSearchFunctionSQL(column))))
+                    )
+                self.add_listener(
+                    (table, "after_create", self.search_trigger_ddl(column))
+                )
 
 
 search_manager = SearchManager()
 
 
 def sync_trigger(
-    conn,
-    table_name,
-    tsvector_column,
-    indexed_columns,
-    metadata=None,
-    options=None
+    conn, table_name, tsvector_column, indexed_columns, metadata=None, options=None
 ):
     """
     Synchronizes search trigger and trigger function for given table and given
@@ -434,17 +391,12 @@ def sync_trigger(
     """
     if metadata is None:
         metadata = sa.MetaData()
-    table = sa.Table(
-        table_name,
-        metadata,
-        autoload=True,
-        autoload_with=conn
-    )
+    table = sa.Table(table_name, metadata, autoload=True, autoload_with=conn)
     params = dict(
         tsvector_column=getattr(table.c, tsvector_column),
         indexed_columns=indexed_columns,
         options=options,
-        conn=conn
+        conn=conn,
     )
     classes = [
         DropSearchTriggerSQL,
@@ -461,13 +413,7 @@ def sync_trigger(
     conn.execute(update_sql)
 
 
-def drop_trigger(
-    conn,
-    table_name,
-    tsvector_column,
-    metadata=None,
-    options=None
-):
+def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None):
     """
     * Drops search trigger for given table (if it exists)
     * Drops search function for given table (if it exists)
@@ -498,16 +444,9 @@ def drop_trigger(
     """
     if metadata is None:
         metadata = sa.MetaData()
-    table = sa.Table(
-        table_name,
-        metadata,
-        autoload=True,
-        autoload_with=conn
-    )
+    table = sa.Table(table_name, metadata, autoload=True, autoload_with=conn)
     params = dict(
-        tsvector_column=getattr(table.c, tsvector_column),
-        options=options,
-        conn=conn
+        tsvector_column=getattr(table.c, tsvector_column), options=options, conn=conn
     )
     classes = [
         DropSearchTriggerSQL,
@@ -521,36 +460,19 @@ def drop_trigger(
 path = os.path.dirname(os.path.abspath(__file__))
 
 
-with open(os.path.join(path, 'expressions.sql')) as file:
+with open(os.path.join(path, "expressions.sql")) as file:
     sql_expressions = DDL(file.read())
 
 
-def make_searchable(
-    metadata,
-    mapper=sa.orm.mapper,
-    manager=search_manager,
-    options={}
-):
+def make_searchable(metadata, mapper=sa.orm.mapper, manager=search_manager, options={}):
     manager.options.update(options)
-    event.listen(
-        mapper, 'instrument_class', manager.process_mapper
-    )
-    event.listen(
-        mapper, 'after_configured', manager.attach_ddl_listeners
-    )
-    event.listen(
-        metadata, 'before_create', sql_expressions
-    )
+    event.listen(mapper, "instrument_class", manager.process_mapper)
+    event.listen(mapper, "after_configured", manager.attach_ddl_listeners)
+    event.listen(metadata, "before_create", sql_expressions)
 
 
 def remove_listeners(metadata, manager=search_manager, mapper=sa.orm.mapper):
-    event.remove(
-        mapper, 'instrument_class', manager.process_mapper
-    )
-    event.remove(
-        mapper, 'after_configured', manager.attach_ddl_listeners
-    )
+    event.remove(mapper, "instrument_class", manager.process_mapper)
+    event.remove(mapper, "after_configured", manager.attach_ddl_listeners)
     manager.remove_listeners()
-    event.remove(
-        metadata, 'before_create', sql_expressions
-    )
+    event.remove(metadata, "before_create", sql_expressions)
