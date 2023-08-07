@@ -22,7 +22,7 @@ We want the name and content to be fulltext indexed, hence we put them inside th
 ::
 
     import sqlalchemy as sa
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import declarative_base
     from sqlalchemy_searchable import make_searchable
     from sqlalchemy_utils.types import TSVectorType
 

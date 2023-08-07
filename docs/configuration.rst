@@ -103,7 +103,7 @@ Consider the following model definition. Here each article has one category.
 
 
     import sqlalchemy as sa
-    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import declarative_base
 
     from sqlalchemy_utils.types import TSVectorType
 
