@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 from sqlalchemy_searchable import drop_trigger, sync_trigger
 from tests import create_test_cases, TestCase
 
@@ -9,35 +11,41 @@ class DropTriggerTestCase(TestCase):
     def create_tables(self):
         with self.engine.begin() as conn:
             conn.execute(
-                """
-                CREATE TABLE article (
-                    name TEXT,
-                    content TEXT,
-                    "current_user" TEXT,
-                    search_vector TSVECTOR
+                text(
+                    """
+                    CREATE TABLE article (
+                        name TEXT,
+                        content TEXT,
+                        "current_user" TEXT,
+                        search_vector TSVECTOR
+                    )
+                    """
                 )
-                """
             )
 
     def drop_tables(self):
         with self.engine.begin() as conn:
-            conn.execute("DROP TABLE article")
+            conn.execute(text("DROP TABLE article"))
 
     def test_drops_triggers_and_functions(self):
         def trigger_exist(conn):
             return conn.execute(
-                """SELECT COUNT(*)
-                   FROM pg_trigger
-                   WHERE tgname = 'article_search_vector_trigger'
-                """
+                text(
+                    """SELECT COUNT(*)
+                    FROM pg_trigger
+                    WHERE tgname = 'article_search_vector_trigger'
+                    """
+                )
             ).scalar()
 
         def function_exist(conn):
             return conn.execute(
-                """SELECT COUNT(*)
+                text(
+                    """SELECT COUNT(*)
                    FROM pg_proc
                    WHERE proname = 'article_search_vector_update'
                    """
+                )
             ).scalar()
 
         with self.engine.begin() as conn:
