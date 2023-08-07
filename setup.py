@@ -41,7 +41,6 @@ setup(
     install_requires=[
         'SQLAlchemy>=1.4,<1.5',
         'SQLAlchemy-Utils>=0.37.5',
-        'validators>=0.3.0',
     ],
     classifiers=[
         'Environment :: Web Environment',
