@@ -9,6 +9,7 @@ Unreleased
 - **BREAKING CHANGE**: Drop support for Python 3.6 and 3.7
 - **BREAKING CHANGE**: Drop support for SQLAlchemy 1.3
 - Remove ``validators`` dependency
+- Add support for Python 3.10 and 3.11
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^
