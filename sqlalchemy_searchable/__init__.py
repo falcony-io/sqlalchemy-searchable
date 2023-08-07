@@ -3,8 +3,9 @@ from functools import reduce
 
 import sqlalchemy as sa
 from sqlalchemy import event
-from sqlalchemy.dialects.postgresql.base import RESERVED_WORDS
-from sqlalchemy.schema import DDL
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.schema import DDL, DDLElement
+from sqlalchemy.sql.expression import Executable
 from sqlalchemy_utils import TSVectorType
 
 from .vectorizers import Vectorizer
@@ -67,17 +68,10 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
     return query.params(term=search_query)
 
 
-def quote_identifier(identifier):
-    """Adds double quotes to given identifier. Since PostgreSQL is the only
-    supported dialect we don't need dialect specific stuff here"""
-    return '"%s"' % identifier
-
-
 class SQLConstruct:
-    def __init__(self, tsvector_column, conn=None, indexed_columns=None, options=None):
+    def __init__(self, tsvector_column, indexed_columns=None, options=None):
         self.table = tsvector_column.table
         self.tsvector_column = tsvector_column
-        self.conn = conn
         self.options = self.init_options(options)
         if indexed_columns:
             self.indexed_columns = list(indexed_columns)
@@ -85,7 +79,6 @@ class SQLConstruct:
             self.indexed_columns = list(self.tsvector_column.type.columns)
         else:
             self.indexed_columns = None
-        self.params = {}
 
     def init_options(self, options=None):
         if not options:
@@ -118,9 +111,7 @@ class SQLConstruct:
         )
 
     def column_vector(self, column):
-        if column.name in RESERVED_WORDS:
-            column.name = quote_identifier(column.name)
-        value = sa.text(f"NEW.{column.name}")
+        value = sa.text(f"NEW.{sa.column(column.name)}")
         try:
             vectorizer_func = vectorizer[column]
         except KeyError:
@@ -134,31 +125,32 @@ class SQLConstruct:
             value = sa.func.setweight(value, weight)
         return value
 
-    @property
-    def search_vector(self):
+    def search_vector(self, compiler):
         vectors = (
             self.column_vector(getattr(self.table.c, column_name))
             for column_name in self.indexed_columns
         )
         concatenated = reduce(lambda x, y: x.op("||")(y), vectors)
-        compiled = concatenated.compile(self.conn)
-        self.params = compiled.params
-        return compiled
+        return compiler.sql_compiler.process(concatenated, literal_binds=True)
 
 
-class CreateSearchFunctionSQL(SQLConstruct):
-    def __str__(self):
-        return f"""CREATE FUNCTION
-                {self.search_function_name}() RETURNS TRIGGER AS $$
-            BEGIN
-                NEW.{self.tsvector_column.name} = {self.search_vector};
-                RETURN NEW;
-            END
-            $$ LANGUAGE 'plpgsql';
-            """
+class CreateSearchFunctionSQL(SQLConstruct, DDLElement, Executable):
+    pass
 
 
-class CreateSearchTriggerSQL(SQLConstruct):
+@compiles(CreateSearchFunctionSQL)
+def compile_create_search_function_sql(element, compiler):
+    return f"""CREATE FUNCTION
+            {element.search_function_name}() RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.{element.tsvector_column.name} = {element.search_vector(compiler)};
+            RETURN NEW;
+        END
+        $$ LANGUAGE 'plpgsql';
+        """
+
+
+class CreateSearchTriggerSQL(SQLConstruct, DDLElement, Executable):
     @property
     def search_trigger_function_with_trigger_args(self):
         if self.options["weights"] or any(
@@ -173,27 +165,39 @@ class CreateSearchTriggerSQL(SQLConstruct):
             )
         )
 
-    def __str__(self):
-        return (
-            "CREATE TRIGGER {search_trigger_name}"
-            " BEFORE UPDATE OR INSERT ON {table}"
-            " FOR EACH ROW EXECUTE PROCEDURE"
-            " {procedure_ddl}".format(
-                search_trigger_name=self.search_trigger_name,
-                table=self.table_name,
-                procedure_ddl=(self.search_trigger_function_with_trigger_args),
-            )
+
+@compiles(CreateSearchTriggerSQL)
+def compile_create_search_trigger_sql(element, compiler):
+    return (
+        "CREATE TRIGGER {search_trigger_name}"
+        " BEFORE UPDATE OR INSERT ON {table}"
+        " FOR EACH ROW EXECUTE PROCEDURE"
+        " {procedure_ddl}".format(
+            search_trigger_name=element.search_trigger_name,
+            table=element.table_name,
+            procedure_ddl=(element.search_trigger_function_with_trigger_args),
         )
+    )
 
 
-class DropSearchFunctionSQL(SQLConstruct):
-    def __str__(self):
-        return "DROP FUNCTION IF EXISTS %s()" % self.search_function_name
+class DropSearchFunctionSQL(SQLConstruct, DDLElement, Executable):
+    pass
 
 
-class DropSearchTriggerSQL(SQLConstruct):
-    def __str__(self):
-        return f"DROP TRIGGER IF EXISTS {self.search_trigger_name} ON {self.table_name}"
+@compiles(DropSearchFunctionSQL)
+def compile_drop_search_function_sql(element, compiler):
+    return "DROP FUNCTION IF EXISTS %s()" % element.search_function_name
+
+
+class DropSearchTriggerSQL(SQLConstruct, DDLElement, Executable):
+    pass
+
+
+@compiles(DropSearchTriggerSQL)
+def compile_drop_search_trigger_sql(element, compiler):
+    return (
+        f"DROP TRIGGER IF EXISTS {element.search_trigger_name} ON {element.table_name}"
+    )
 
 
 class SearchManager:
@@ -217,21 +221,6 @@ class SearchManager:
             return column.type.options[name]
         except (AttributeError, KeyError):
             return self.options[name]
-
-    def search_function_ddl(self, column):
-        def after_create(target, connection, **kw):
-            clause = CreateSearchFunctionSQL(column, conn=connection)
-            connection.execute(str(clause), **clause.params)
-
-        return after_create
-
-    def search_trigger_ddl(self, column):
-        """
-        Returns the ddl for creating an automatically updated search trigger.
-
-        :param column: TSVectorType typed SQLAlchemy column object
-        """
-        return DDL(str(CreateSearchTriggerSQL(column)))
 
     def inspect_columns(self, table):
         """
@@ -283,13 +272,13 @@ class SearchManager:
                     column
                 ):
                     self.add_listener(
-                        (table, "after_create", self.search_function_ddl(column))
+                        (table, "after_create", CreateSearchFunctionSQL(column))
                     )
                     self.add_listener(
-                        (table, "after_drop", DDL(str(DropSearchFunctionSQL(column))))
+                        (table, "after_drop", DropSearchFunctionSQL(column))
                     )
                 self.add_listener(
-                    (table, "after_create", self.search_trigger_ddl(column))
+                    (table, "after_create", CreateSearchTriggerSQL(column))
                 )
 
 
@@ -396,7 +385,6 @@ def sync_trigger(
         tsvector_column=getattr(table.c, tsvector_column),
         indexed_columns=indexed_columns,
         options=options,
-        conn=conn,
     )
     classes = [
         DropSearchTriggerSQL,
@@ -405,8 +393,7 @@ def sync_trigger(
         CreateSearchTriggerSQL,
     ]
     for class_ in classes:
-        sql = class_(**params)
-        conn.execute(str(sql), **sql.params)
+        conn.execute(class_(**params))
     update_sql = table.update().values(
         {indexed_columns[0]: sa.text(indexed_columns[0])}
     )
@@ -445,16 +432,13 @@ def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None)
     if metadata is None:
         metadata = sa.MetaData()
     table = sa.Table(table_name, metadata, autoload_with=conn)
-    params = dict(
-        tsvector_column=getattr(table.c, tsvector_column), options=options, conn=conn
-    )
+    params = dict(tsvector_column=getattr(table.c, tsvector_column), options=options)
     classes = [
         DropSearchTriggerSQL,
         DropSearchFunctionSQL,
     ]
     for class_ in classes:
-        sql = class_(**params)
-        conn.execute(str(sql), **sql.params)
+        conn.execute(class_(**params))
 
 
 path = os.path.dirname(os.path.abspath(__file__))

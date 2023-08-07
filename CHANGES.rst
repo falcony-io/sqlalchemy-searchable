@@ -8,6 +8,9 @@ Unreleased
 
 - **BREAKING CHANGE**: Drop support for Python 3.6 and 3.7
 - **BREAKING CHANGE**: Drop support for SQLAlchemy 1.3
+- **BREAKING CHANGE**: Remove ``quote_identifier`` function
+- **BREAKING CHANGE**: Remove ``SearchManager.search_function_ddl`` method. Use ``CreateSearchFunctionSQL(column)`` instead.
+- **BREAKING CHANGE**: Remove ``SearchManager.search_trigger_ddl`` method. Use ``CreateSearchTriggerSQL(column)`` instead.
 - Remove ``validators`` dependency
 - Add support for Python 3.10 and 3.11
 - Use the ``pyproject.toml`` standard to specify project metadata, dependencies and tool configuration. Use Hatch to build the project.
