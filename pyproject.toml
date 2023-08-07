@@ -59,7 +59,6 @@ filterwarnings = [
     "ignore:The ``declarative_base\\(\\)`` function is now available as sqlalchemy.orm.declarative_base\\(\\).*:sqlalchemy.exc.RemovedIn20Warning",
     "ignore:The autoload parameter is deprecated.*:sqlalchemy.exc.RemovedIn20Warning",
     "ignore:The connection.execute\\(\\) method in SQLAlchemy 2.0 will accept parameters as a single dictionary or a single sequence of dictionaries only.*:sqlalchemy.exc.RemovedIn20Warning",
-    "ignore:Using plain strings to indicate SQL statements without using the text\\(\\) construct.*:sqlalchemy.exc.RemovedIn20Warning",
 ]
 
 [tool.ruff]

@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import text
 
 from tests import TestCase
 
@@ -87,9 +88,10 @@ class TestParse(TestCase):
     def test_parse(self, input, output):
         assert (
             self.session.execute(
-                "SELECT parse_websearch('pg_catalog.simple', :input)", {"input": input}
+                text("SELECT parse_websearch('pg_catalog.simple', :input)"),
+                {"input": input},
             ).scalar()
             == self.session.execute(
-                "SELECT CAST(:output AS tsquery)", {"output": output}
+                text("SELECT CAST(:output AS tsquery)"), {"output": output}
             ).scalar()
         )
