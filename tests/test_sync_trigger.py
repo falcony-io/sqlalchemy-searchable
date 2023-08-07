@@ -9,37 +9,42 @@ class SyncTriggerTestCase(TestCase):
         pass
 
     def create_tables(self):
-        conn = self.session.bind
-        conn.execute(
-            """CREATE TABLE article
-            (name TEXT, content TEXT, "current_user" TEXT,
-            search_vector TSVECTOR)
-            """
-        )
+        with self.engine.begin() as conn:
+            conn.execute(
+                """
+                CREATE TABLE article (
+                    name TEXT,
+                    content TEXT,
+                    "current_user" TEXT,
+                    search_vector TSVECTOR
+                )
+                """
+            )
 
     def drop_tables(self):
-        self.session.bind.execute("DROP TABLE article")
+        with self.engine.begin() as conn:
+            conn.execute("DROP TABLE article")
 
     def test_creates_triggers_and_functions(self):
-        conn = self.session.bind
-        sync_trigger(conn, "article", "search_vector", ["name", "content"])
-        conn.execute(
-            """INSERT INTO article (name, content)
-            VALUES ('some name', 'some content')"""
-        )
-        vector = conn.execute("SELECT search_vector FROM article").scalar()
+        with self.engine.begin() as conn:
+            sync_trigger(conn, "article", "search_vector", ["name", "content"])
+            conn.execute(
+                """INSERT INTO article (name, content)
+                VALUES ('some name', 'some content')"""
+            )
+            vector = conn.execute("SELECT search_vector FROM article").scalar()
         assert vector == "'content':4 'name':2"
 
     def test_updates_column_values(self):
-        conn = self.session.bind
-        sync_trigger(conn, "article", "search_vector", ["name", "content"])
-        conn.execute(
-            """INSERT INTO article (name, content)
-            VALUES ('some name', 'some content')"""
-        )
-        conn.execute("ALTER TABLE article DROP COLUMN name")
-        sync_trigger(conn, "article", "search_vector", ["content"])
-        vector = conn.execute("SELECT search_vector FROM article").scalar()
+        with self.engine.begin() as conn:
+            sync_trigger(conn, "article", "search_vector", ["name", "content"])
+            conn.execute(
+                """INSERT INTO article (name, content)
+                VALUES ('some name', 'some content')"""
+            )
+            conn.execute("ALTER TABLE article DROP COLUMN name")
+            sync_trigger(conn, "article", "search_vector", ["content"])
+            vector = conn.execute("SELECT search_vector FROM article").scalar()
         assert vector == "'content':2"
 
     def test_custom_vectorizers(self):
@@ -53,33 +58,33 @@ class SyncTriggerTestCase(TestCase):
         def vectorize_content(column):
             return sa.func.replace(column, "bad", "good")
 
-        conn = self.session.bind
-        sync_trigger(
-            conn,
-            "article",
-            "search_vector",
-            ["name", "content"],
-            metadata=self.Base.metadata,
-        )
-        conn.execute(
-            """INSERT INTO article (name, content)
-            VALUES ('some name', 'some bad content')"""
-        )
-        vector = conn.execute("SELECT search_vector FROM article").scalar()
+        with self.engine.begin() as conn:
+            sync_trigger(
+                conn,
+                "article",
+                "search_vector",
+                ["name", "content"],
+                metadata=self.Base.metadata,
+            )
+            conn.execute(
+                """INSERT INTO article (name, content)
+                VALUES ('some name', 'some bad content')"""
+            )
+            vector = conn.execute("SELECT search_vector FROM article").scalar()
         assert vector == "'content':5 'good':4 'name':2"
 
     def test_trigger_with_reserved_word(self):
-        conn = self.session.bind
-        conn.execute(
-            """INSERT INTO article (name, content, "current_user")
-            VALUES ('some name', 'some bad content', now())"""
-        )
+        with self.engine.begin() as conn:
+            conn.execute(
+                """INSERT INTO article (name, content, "current_user")
+                VALUES ('some name', 'some bad content', now())"""
+            )
 
-        sync_trigger(
-            conn, "article", "search_vector", ["name", "content", "current_user"]
-        )
-        # raises ProgrammingError without reserved_words:
-        conn.execute("""UPDATE article SET name=name""")
+            sync_trigger(
+                conn, "article", "search_vector", ["name", "content", "current_user"]
+            )
+            # raises ProgrammingError without reserved_words:
+            conn.execute("""UPDATE article SET name=name""")
 
 
 create_test_cases(SyncTriggerTestCase)
