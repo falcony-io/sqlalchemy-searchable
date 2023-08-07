@@ -51,7 +51,7 @@ exclude = [
 ]
 
 [tool.ruff]
-select = ["E", "F", "I"]
+select = ["E", "F", "I", "UP"]
 
 [tool.ruff.isort]
 known-first-party = ["sqlalchemy_searchable", "tests"]

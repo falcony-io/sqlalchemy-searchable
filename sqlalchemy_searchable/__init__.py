@@ -15,7 +15,7 @@ __version__ = '1.4.1'
 vectorizer = Vectorizer()
 
 
-class SearchQueryMixin(object):
+class SearchQueryMixin:
     def search(self, search_query, vector=None, regconfig=None, sort=False):
         """
         Search given query with full text search.
@@ -85,7 +85,7 @@ def quote_identifier(identifier):
     return '"%s"' % identifier
 
 
-class SQLConstruct(object):
+class SQLConstruct:
     def __init__(
         self,
         tsvector_column,
@@ -119,7 +119,7 @@ class SQLConstruct(object):
     @property
     def table_name(self):
         if self.table.schema:
-            return '%s."%s"' % (self.table.schema, self.table.name)
+            return f'{self.table.schema}."{self.table.name}"'
         else:
             return '"' + self.table.name + '"'
 
@@ -140,7 +140,7 @@ class SQLConstruct(object):
     def column_vector(self, column):
         if column.name in RESERVED_WORDS:
             column.name = quote_identifier(column.name)
-        value = sa.text('NEW.{column}'.format(column=column.name))
+        value = sa.text(f'NEW.{column.name}')
         try:
             vectorizer_func = vectorizer[column]
         except KeyError:
@@ -168,20 +168,14 @@ class SQLConstruct(object):
 
 class CreateSearchFunctionSQL(SQLConstruct):
     def __str__(self):
-        return (
-            """CREATE FUNCTION
-                {search_trigger_function_name}() RETURNS TRIGGER AS $$
+        return f"""CREATE FUNCTION
+                {self.search_function_name}() RETURNS TRIGGER AS $$
             BEGIN
-                NEW.{search_vector_name} = {ts_vector};
+                NEW.{self.tsvector_column.name} = {self.search_vector};
                 RETURN NEW;
             END
             $$ LANGUAGE 'plpgsql';
             """
-        ).format(
-            search_trigger_function_name=self.search_function_name,
-            search_vector_name=self.tsvector_column.name,
-            ts_vector=self.search_vector
-        )
 
 
 class CreateSearchTriggerSQL(SQLConstruct):
@@ -228,13 +222,10 @@ class DropSearchFunctionSQL(SQLConstruct):
 
 class DropSearchTriggerSQL(SQLConstruct):
     def __str__(self):
-        return 'DROP TRIGGER IF EXISTS %s ON %s' % (
-            self.search_trigger_name,
-            self.table_name
-        )
+        return f'DROP TRIGGER IF EXISTS {self.search_trigger_name} ON {self.table_name}'
 
 
-class SearchManager():
+class SearchManager:
     default_options = {
         'search_trigger_name': '{table}_{column}_trigger',
         'search_trigger_function_name': '{table}_{column}_update',

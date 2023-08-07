@@ -7,12 +7,12 @@ from tests import SchemaTestCase, TestCase
 
 class TestMultipleSearchVectorsPerClass(SchemaTestCase):
     should_create_indexes = [
-        u'ix_textitem_content_vector',
-        u'ix_textitem_name_vector',
+        'ix_textitem_content_vector',
+        'ix_textitem_name_vector',
     ]
     should_create_triggers = [
-        u'textitem_content_vector_trigger',
-        u'textitem_name_vector_trigger',
+        'textitem_content_vector_trigger',
+        'textitem_name_vector_trigger',
     ]
 
     def create_models(self):
@@ -53,10 +53,10 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
     def setup_method(self, method):
         TestCase.setup_method(self, method)
         self.session.add(
-            self.TextMultiItem(name=u'index', content=u'lorem ipsum')
+            self.TextMultiItem(name='index', content='lorem ipsum')
         )
         self.session.add(
-            self.TextMultiItem(name=u'ipsum', content=u'admin content')
+            self.TextMultiItem(name='ipsum', content='admin content')
         )
         self.session.commit()
 

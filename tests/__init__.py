@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import inspect
 import itertools as it
 import os
@@ -39,7 +38,7 @@ if __pypy__:
     compat.register()
 
 
-class TestCase(object):
+class TestCase:
     remove_symbols = '-@.'
     search_trigger_name = '{table}_{column}_trigger'
     search_trigger_function_name = '{table}_{column}_update'
