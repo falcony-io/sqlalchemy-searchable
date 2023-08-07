@@ -50,8 +50,9 @@ exclude = [
     "/docs/_build",
 ]
 
-[tool.isort]
-known_first_party = ["sqlalchemy_searchable", "tests"]
-line_length       = 79
-multi_line_output = 3
-order_by_type     = false
+[tool.ruff]
+select = ["E", "F", "I"]
+
+[tool.ruff.isort]
+known-first-party = ["sqlalchemy_searchable", "tests"]
+order-by-type     = false
