@@ -41,8 +41,7 @@ model::
 Now SQLAlchemy-Searchable would create the following search trigger for this
 model (with default configuration)
 
-.. code-block:: sql
-
+.. code-block:: postgres
 
     CREATE FUNCTION
         textitem_search_vector_update() RETURNS TRIGGER AS $$
