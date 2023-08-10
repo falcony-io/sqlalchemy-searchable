@@ -60,7 +60,7 @@ Phrase searching
 SQLAlchemy-Searchable supports phrase searches. Just add the keywords in double quotes.::
 
 
-query = search(query, '"star wars"')
+    query = search(query, '"star wars"')
 
 
 
