@@ -444,14 +444,14 @@ with open(os.path.join(path, "expressions.sql")) as file:
     sql_expressions = DDL(file.read())
 
 
-def make_searchable(metadata, mapper=sa.orm.mapper, manager=search_manager, options={}):
+def make_searchable(metadata, mapper=sa.orm.Mapper, manager=search_manager, options={}):
     manager.options.update(options)
     event.listen(mapper, "instrument_class", manager.process_mapper)
     event.listen(mapper, "after_configured", manager.attach_ddl_listeners)
     event.listen(metadata, "before_create", sql_expressions)
 
 
-def remove_listeners(metadata, manager=search_manager, mapper=sa.orm.mapper):
+def remove_listeners(metadata, manager=search_manager, mapper=sa.orm.Mapper):
     event.remove(mapper, "instrument_class", manager.process_mapper)
     event.remove(mapper, "after_configured", manager.attach_ddl_listeners)
     manager.remove_listeners()
