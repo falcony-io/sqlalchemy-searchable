@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "SQLAlchemy-Utils>=0.37.5",
+    "SQLAlchemy-Utils>=0.40.0",
     "SQLAlchemy>=1.4",
 ]
 
