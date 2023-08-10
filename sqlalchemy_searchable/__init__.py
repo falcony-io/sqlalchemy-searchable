@@ -169,14 +169,10 @@ class CreateSearchTriggerSQL(SQLConstruct, DDLElement, Executable):
 @compiles(CreateSearchTriggerSQL)
 def compile_create_search_trigger_sql(element, compiler):
     return (
-        "CREATE TRIGGER {search_trigger_name}"
-        " BEFORE UPDATE OR INSERT ON {table}"
+        f"CREATE TRIGGER {element.search_trigger_name}"
+        f" BEFORE UPDATE OR INSERT ON {element.table_name}"
         " FOR EACH ROW EXECUTE PROCEDURE"
-        " {procedure_ddl}".format(
-            search_trigger_name=element.search_trigger_name,
-            table=element.table_name,
-            procedure_ddl=(element.search_trigger_function_with_trigger_args),
-        )
+        f" {element.search_trigger_function_with_trigger_args}"
     )
 
 
