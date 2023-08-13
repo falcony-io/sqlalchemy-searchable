@@ -1,76 +1,49 @@
 Search query parser
 ===================
 
-As of version 1.0 SQLAlchemy-Searchable comes with native PostgreSQL search query parser. The search query parser is capable of parsing human readable search queries into PostgreSQL search query syntax.
-
+SQLAlchemy-Searchable includes a search query parser that enables the conversion
+of human-readable search queries into PostgreSQL search query syntax.
 
 AND operator
 ------------
 
-Example: Search for articles containing 'star' and 'wars'
-
-The default operator is 'and', hence the following queries are essentially the same:
-
-::
+The search query parser treats search terms as if they are connected with an
+implied AND operator. To search for articles containing both "star" and "wars",
+simply use the query "star wars"::
 
     query = search(query, 'star wars')
-    query2 = search(query, 'star and wars')
-    assert query == query2
-
 
 OR operator
 ------------
 
-Searching for articles containing 'star' or 'wars'
-
-::
-
+The OR operator in the search query parser allows you to broaden your search to
+include results that contain any of the specified terms. To search for articles
+containing either "star" or "wars", you can utilize the OR operator as follows::
 
     query = search(query, 'star or wars')
-
 
 Negation operator
 -----------------
 
-SQLAlchemy-Searchable search query parser supports negation operator. By default the negation operator is '-'.
+Th search query parser supports excluding words from the search. Enter ``-`` in
+front of the word you want to leave out. To search for articles containing
+"star" but not "wars", you can use the query "star -wars"::
 
-Example: Searching for article containing 'star' but not 'wars'
-
-::
-
-
-    query = search(query, 'star or -wars')
-
-
-
-Parenthesis
------------
-
-1. Searching for articles containing 'star' and 'wars' or 'luke'
-
-::
-
-
-    query = search(query, '(star wars) or luke')
-
+    query = search(query, 'star -wars')
 
 Phrase searching
 ----------------
 
-SQLAlchemy-Searchable supports phrase searches. Just add the keywords in double quotes.::
-
+If you need to search for a specific phrase, enclose the phrase in double quotes::
 
     query = search(query, '"star wars"')
-
-
 
 Internals
 ---------
 
-If you wish to use only the query parser this can be achieved by invoking `parse` function. This function parses human readable search query into PostgreSQL tsquery format.
+If you wish to use only the query parser, this can be achieved by invoking the
+``parse_websearch`` function. This function parses human readable search query into
+PostgreSQL ``tsquery`` format::
 
-::
-
-
-    session.execute("SELECT tsq_parse('(star wars) or luke')").scalar()
-    # (star:* & wars:*) | luke:*
+    >>> session.execute("SELECT parse_websearch('(star wars) or luke')").scalar()
+    '(star:* & wars:*) | luke:*'
