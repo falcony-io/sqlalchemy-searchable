@@ -265,4 +265,8 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"python": ("http://docs.python.org/", None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/", None),
+    "sqlalchemy": ("https://docs.sqlalchemy.org/", None),
+    "sqlalchemy_utils": ("https://sqlalchemy-utils.readthedocs.io/en/latest/", None),
+}
