@@ -44,7 +44,10 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
     :param search_query: the search query
     :param vector: search vector to use
     :param regconfig: postgresql regconfig to be used
-    :param sort: order results by relevance (quality of hit)
+    :param sort: Order the results by relevance. This uses `cover density`_ ranking
+        algorithm (``ts_rank_cd``) for sorting.
+
+    .. _cover density: https://www.postgresql.org/docs/devel/textsearch-controls.html#TEXTSEARCH-RANKING
     """
     if not search_query.strip():
         return query
