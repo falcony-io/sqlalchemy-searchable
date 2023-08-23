@@ -32,8 +32,26 @@ class TestParse:
             ('"star or or wars"', "star:* <-> or:* <-> or:* <-> wars:*"),
             ("star or   or    or    wars", "'star':* | 'or':* | 'wars':*"),
             ("star oror wars", "'star':* & 'oror':* & 'wars':*"),
-            ("star-wars", "'star-wars':* & 'star':* & 'wars':*"),
-            ("star----wars", "'star':* & 'wars':*"),
+            pytest.param(
+                "star-wars",
+                "'star-wars':* & 'star':* & 'wars':*",
+                marks=pytest.mark.postgresql_max_version(13),
+            ),
+            pytest.param(
+                "star-wars",
+                "'star-wars':* <-> 'star':* <-> 'wars':*",
+                marks=pytest.mark.postgresql_min_version(14),
+            ),
+            pytest.param(
+                "star----wars",
+                "'star':* & 'wars':*",
+                marks=pytest.mark.postgresql_max_version(13),
+            ),
+            pytest.param(
+                "star----wars",
+                "'star':* <-> 'wars':*",
+                marks=pytest.mark.postgresql_min_version(14),
+            ),
             ("star   wars    luke", "'star':* & 'wars':* & 'luke':*"),
             ("örrimöykky", "'örrimöykky':*"),
             ("-star", "!'star':*"),
@@ -72,14 +90,35 @@ class TestParse:
                 "'star':* <-> 'wars':* & 'death':* <-> 'star':*",
             ),
             ("star or wars luke or solo", "'star':* | 'wars':* & 'luke':* | 'solo':*"),
-            ("-star#wars", "!( 'star':* & 'wars':* )"),
-            (
+            pytest.param(
+                "-star#wars",
+                "!( 'star':* & 'wars':* )",
+                marks=pytest.mark.postgresql_max_version(13),
+            ),
+            pytest.param(
+                "-star#wars",
+                "!( 'star':* <-> 'wars':* )",
+                marks=pytest.mark.postgresql_min_version(14),
+            ),
+            pytest.param(
                 "-star#wars or -star#wars",
                 "!( 'star':* & 'wars':* ) | !( 'star':* & 'wars':* )",
+                marks=pytest.mark.postgresql_max_version(13),
             ),
-            (
+            pytest.param(
+                "-star#wars or -star#wars",
+                "!( 'star':* <-> 'wars':* ) | !( 'star':* <-> 'wars':* )",
+                marks=pytest.mark.postgresql_min_version(14),
+            ),
+            pytest.param(
                 '"star#wars star_wars"',
                 "( 'star':* & 'wars':* ) <-> ( 'star':* & 'wars':* )",
+                marks=pytest.mark.postgresql_max_version(13),
+            ),
+            pytest.param(
+                '"star#wars star_wars"',
+                "'star':* <-> 'wars':* <-> 'star':* <-> 'wars':*",
+                marks=pytest.mark.postgresql_min_version(14),
             ),
         ),
     )
