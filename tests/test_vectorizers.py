@@ -1,15 +1,19 @@
+import pytest
 import sqlalchemy as sa
-from pytest import raises
 from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy_utils import TSVectorType
 
 from sqlalchemy_searchable import vectorizer
-from tests import TestCase
 
 
-class TestTypeVectorizers(TestCase):
-    def create_models(self):
-        class Article(self.Base):
+class TestTypeVectorizers:
+    @pytest.fixture
+    def models(self, Article):
+        pass
+
+    @pytest.fixture
+    def Article(self, Base):
+        class Article(Base):
             __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -26,13 +30,13 @@ class TestTypeVectorizers(TestCase):
         def hstore_vectorizer(column):
             return sa.cast(sa.func.avals(column), sa.Text)
 
-        self.Article = Article
+        return Article
 
-    def test_uses_column_vectorizer(self):
-        article = self.Article(name={"fi": "Joku artikkeli", "en": "Some article"})
-        self.session.add(article)
-        self.session.commit()
-        self.session.refresh(article)
+    def test_uses_column_vectorizer(self, Article, session):
+        article = Article(name={"fi": "Joku artikkeli", "en": "Some article"})
+        session.add(article)
+        session.commit()
+        session.refresh(article)
         assert "article" in article.search_vector
         assert "joku" in article.search_vector
         assert "some" in article.search_vector
@@ -41,9 +45,14 @@ class TestTypeVectorizers(TestCase):
         assert "en" not in article.search_vector
 
 
-class TestColumnVectorizer(TestCase):
-    def create_models(self):
-        class Article(self.Base):
+class TestColumnVectorizer:
+    @pytest.fixture
+    def models(self, Article):
+        pass
+
+    @pytest.fixture
+    def Article(self, Base):
+        class Article(Base):
             __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -64,20 +73,22 @@ class TestColumnVectorizer(TestCase):
         def hstore_vectorizer(column):
             return sa.cast(sa.func.avals(column), sa.Text)
 
-        self.Article = Article
+        return Article
 
-    def test_column_vectorizer_has_priority_over_type_vectorizer(self):
-        article = self.Article(
+    def test_column_vectorizer_has_priority_over_type_vectorizer(
+        self, Article, session
+    ):
+        article = Article(
             name={"fi": "Joku artikkeli", "en": "Some article"}, content="bad"
         )
-        self.session.add(article)
-        self.session.commit()
-        self.session.refresh(article)
+        session.add(article)
+        session.commit()
+        session.refresh(article)
         for word in ["article", "artikkeli", "good", "joku", "some"]:
             assert word in article.search_vector
 
     def test_unknown_vectorizable_type(self):
-        with raises(TypeError):
+        with pytest.raises(TypeError):
 
             @vectorizer("some unknown type")
             def my_vectorizer(column):

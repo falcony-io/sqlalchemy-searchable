@@ -1,22 +1,29 @@
+import pytest
 import sqlalchemy as sa
 from sqlalchemy_utils import TSVectorType
 
 from sqlalchemy_searchable import search
-from tests import SchemaTestCase, TestCase
+from tests.schema_test_case import SchemaTestCase
 
 
 class TestMultipleSearchVectorsPerClass(SchemaTestCase):
-    should_create_indexes = [
-        "ix_textitem_content_vector",
-        "ix_textitem_name_vector",
-    ]
-    should_create_triggers = [
-        "textitem_content_vector_trigger",
-        "textitem_name_vector_trigger",
-    ]
+    @pytest.fixture
+    def should_create_indexes(self):
+        return [
+            "ix_textitem_content_vector",
+            "ix_textitem_name_vector",
+        ]
 
-    def create_models(self):
-        class TextItem(self.Base):
+    @pytest.fixture
+    def should_create_triggers(self):
+        return [
+            "textitem_content_vector_trigger",
+            "textitem_name_vector_trigger",
+        ]
+
+    @pytest.fixture
+    def models(self, Base):
+        class TextItem(Base):
             __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -30,11 +37,10 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
             content_vector = sa.Column(TSVectorType("content", auto_index=True))
 
 
-class TestMultipleSearchVectorsSearchFunction(TestCase):
-    def create_models(self):
-        TestCase.create_models(self)
-
-        class TextMultiItem(self.Base):
+class TestMultipleSearchVectorsSearchFunction:
+    @pytest.fixture
+    def TextMultiItem(self, Base):
+        class TextMultiItem(Base):
             __tablename__ = "textmultiitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
@@ -44,19 +50,21 @@ class TestMultipleSearchVectorsSearchFunction(TestCase):
             name_vector = sa.Column(TSVectorType("name", auto_index=False))
             content_vector = sa.Column(TSVectorType("content", auto_index=False))
 
-        self.TextMultiItem = TextMultiItem
+        return TextMultiItem
 
-    def setup_method(self, method):
-        TestCase.setup_method(self, method)
-        self.session.add(self.TextMultiItem(name="index", content="lorem ipsum"))
-        self.session.add(self.TextMultiItem(name="ipsum", content="admin content"))
-        self.session.commit()
+    @pytest.fixture
+    def models(self, TextMultiItem):
+        pass
 
-    def test_choose_vector(self):
-        query = self.TextItemQuery(self.TextMultiItem, self.session)
-        s1 = search(query, "ipsum", vector=self.TextMultiItem.name_vector)
+    def test_choose_vector(self, session, TextMultiItem):
+        session.add(TextMultiItem(name="index", content="lorem ipsum"))
+        session.add(TextMultiItem(name="ipsum", content="admin content"))
+        session.commit()
+
+        query = session.query(TextMultiItem)
+        s1 = search(query, "ipsum", vector=TextMultiItem.name_vector)
         assert s1.first().name == "ipsum"
 
-    def test_without_auto_index(self):
-        indexes = self.TextMultiItem.__table__.indexes
+    def test_without_auto_index(self, TextMultiItem):
+        indexes = TextMultiItem.__table__.indexes
         assert indexes == set()
