@@ -16,6 +16,7 @@ Unreleased
 - Use the ``pyproject.toml`` standard to specify project metadata, dependencies and tool configuration. Use Hatch to build the project.
 - Add support for SQLAlchemy 2.0
 - Rewrite the test suite to use pytest fixtures ove classic xunit-style set-up
+- Fix ``parse_websearch`` tests on PostgreSQL 14 and later
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^
