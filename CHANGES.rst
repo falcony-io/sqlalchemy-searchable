@@ -17,6 +17,7 @@ Unreleased
 - Add support for SQLAlchemy 2.0
 - Rewrite the test suite to use pytest fixtures ove classic xunit-style set-up
 - Fix ``parse_websearch`` tests on PostgreSQL 14 and later
+- Add PostgreSQL versions 11, 13, 14 and 15 to the CI build matrix. Previously, the tests were only run on PostgreSQL 12.
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^
