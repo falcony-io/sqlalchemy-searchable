@@ -1,37 +1,48 @@
 import re
 
+import pytest
 import sqlalchemy as sa
 from sqlalchemy import text
 from sqlalchemy_utils import TSVectorType
 
 from sqlalchemy_searchable import search
-from tests import SchemaTestCase, TestCase
+from tests.schema_test_case import SchemaTestCase
 
 
-class WeightedBase:
-    def create_models(self):
-        class WeightedTextItem(self.Base):
-            __tablename__ = "textitem"
-
-            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-
-            name = sa.Column(sa.Unicode(255))
-            content = sa.Column(sa.UnicodeText)
-            search_vector = sa.Column(
-                TSVectorType("name", "content", weights={"name": "A", "content": "B"})
-            )
-
-        self.WeightedTextItem = WeightedTextItem
+@pytest.fixture
+def models(WeightedTextItem):
+    pass
 
 
-class TestCreateWeightedSearchVector(WeightedBase, SchemaTestCase):
-    should_create_indexes = ["ix_textitem_search_vector"]
-    should_create_triggers = ["textitem_search_vector_trigger"]
+@pytest.fixture
+def WeightedTextItem(Base):
+    class WeightedTextItem(Base):
+        __tablename__ = "textitem"
 
-    def test_search_function_weights(self):
+        id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+
+        name = sa.Column(sa.Unicode(255))
+        content = sa.Column(sa.UnicodeText)
+        search_vector = sa.Column(
+            TSVectorType("name", "content", weights={"name": "A", "content": "B"})
+        )
+
+    return WeightedTextItem
+
+
+class TestCreateWeightedSearchVector(SchemaTestCase):
+    @pytest.fixture
+    def should_create_indexes(self):
+        return ["ix_textitem_search_vector"]
+
+    @pytest.fixture
+    def should_create_triggers(self):
+        return ["textitem_search_vector_trigger"]
+
+    def test_search_function_weights(self, session):
         func_name = "textitem_search_vector_update"
         sql = text("SELECT proname,prosrc FROM pg_proc WHERE proname=:name")
-        name, src = self.session.execute(sql, {"name": func_name}).fetchone()
+        name, src = session.execute(sql, {"name": func_name}).fetchone()
         pattern = (
             r"setweight\(to_tsvector\(.+?"
             r"coalesce\(NEW.(\w+).+?"
@@ -42,17 +53,15 @@ class TestCreateWeightedSearchVector(WeightedBase, SchemaTestCase):
         assert second == ("content", "B")
 
 
-class TestWeightedSearchFunction(WeightedBase, TestCase):
-    def setup_method(self, method):
-        TestCase.setup_method(self, method)
-        self.session.add(
-            self.WeightedTextItem(name="Gort", content="Klaatu barada nikto")
-        )
-        self.session.add(self.WeightedTextItem(name="Klaatu", content="barada nikto"))
-        self.session.commit()
+class TestWeightedSearchFunction:
+    @pytest.fixture(autouse=True)
+    def items(self, session, WeightedTextItem):
+        session.add(WeightedTextItem(name="Gort", content="Klaatu barada nikto"))
+        session.add(WeightedTextItem(name="Klaatu", content="barada nikto"))
+        session.commit()
 
-    def test_weighted_search_results(self):
-        query = self.session.query(self.WeightedTextItem)
+    def test_weighted_search_results(self, session, WeightedTextItem):
+        query = session.query(WeightedTextItem)
         first, second = search(query, "klaatu", sort=True).all()
         assert first.search_vector == "'barada':2B 'klaatu':1A 'nikto':3B"
         assert second.search_vector == "'barada':3B 'gort':1A 'klaatu':2B 'nikto':4B"

@@ -1,10 +1,8 @@
 import pytest
 from sqlalchemy import text
 
-from tests import TestCase
 
-
-class TestParse(TestCase):
+class TestParse:
     @pytest.mark.parametrize(
         ("input", "output"),
         (
@@ -85,13 +83,13 @@ class TestParse(TestCase):
             ),
         ),
     )
-    def test_parse(self, input, output):
+    def test_parse(self, session, input, output):
         assert (
-            self.session.execute(
+            session.execute(
                 text("SELECT parse_websearch('pg_catalog.simple', :input)"),
                 {"input": input},
             ).scalar()
-            == self.session.execute(
+            == session.execute(
                 text("SELECT CAST(:output AS tsquery)"), {"output": output}
             ).scalar()
         )

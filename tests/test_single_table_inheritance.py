@@ -1,19 +1,22 @@
+import pytest
 import sqlalchemy as sa
 from sqlalchemy_utils import TSVectorType
 
-from tests import SchemaTestCase
+from tests.schema_test_case import SchemaTestCase
 
 
 class TestSearchableWithSingleTableInheritance(SchemaTestCase):
-    should_create_indexes = [
-        "ix_textitem_search_vector",
-    ]
-    should_create_triggers = [
-        "textitem_search_vector_trigger",
-    ]
+    @pytest.fixture
+    def should_create_indexes(self):
+        return ["ix_textitem_search_vector"]
 
-    def create_models(self):
-        class TextItem(self.Base):
+    @pytest.fixture
+    def should_create_triggers(self):
+        return ["textitem_search_vector_trigger"]
+
+    @pytest.fixture
+    def models(self, Base):
+        class TextItem(Base):
             __tablename__ = "textitem"
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
