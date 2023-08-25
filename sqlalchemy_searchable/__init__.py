@@ -291,18 +291,16 @@ search_manager = SearchManager()
 def sync_trigger(
     conn, table_name, tsvector_column, indexed_columns, metadata=None, options=None
 ):
-    """
-    Synchronizes search trigger and trigger function for given table and given
-    search index column. Internally this function executes the following SQL
+    """Synchronize the search trigger and trigger function for the given table and
+    search vector column. Internally, this function executes the following SQL
     queries:
 
-    * Drops search trigger for given table (if it exists)
-    * Drops search function for given table (if it exists)
-    * Creates search function for given table
-    * Creates search trigger for given table
-    * Updates all rows for given search vector by running a column=column
-      update query for given table.
-
+    - Drop the search trigger for the given table and column if it exists.
+    - Drop the search function for the given table and column if it exists.
+    - Create the search function for the given table and column.
+    - Create the search trigger for the given table and column.
+    - Update all rows for the given search vector by executing a column=column update
+      query for the given table.
 
     Example::
 
@@ -316,11 +314,9 @@ def sync_trigger(
             ['name', 'content']
         )
 
-
-    This function is especially useful when working with alembic migrations.
-    In the following example we add a content column to article table and then
-    sync the trigger to contain this new column. ::
-
+    This function is especially useful when working with Alembic migrations. In the
+    following example, we add a ``content`` column to the ``article`` table and then
+    synchronize the trigger to contain this new column::
 
         from alembic import op
         from sqlalchemy_searchable import sync_trigger
@@ -334,10 +330,8 @@ def sync_trigger(
 
         # ... same for downgrade
 
-
-    If you are using vectorizers you need to initialize them in your migration
-    file and pass them to this function. ::
-
+    If you are using vectorizers, you need to initialize them in your migration
+    file and pass them to this function::
 
         import sqlalchemy as sa
         from alembic import op
@@ -377,7 +371,7 @@ def sync_trigger(
         Full text indexed column names as a list
     :param metadata:
         Optional SQLAlchemy metadata object that is being used for autoloaded
-        Table. If None is given then new MetaData object is initialized within
+        Table. If None is given, then a new MetaData object is initialized within
         this function.
     :param options: Dictionary of configuration options
     """
@@ -405,9 +399,12 @@ def sync_trigger(
 
 def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None):
     """
-    * Drops search trigger for given table (if it exists)
-    * Drops search function for given table (if it exists)
+    Drop the search trigger and trigger function for the given table and
+    search vector column. Internally, this function executes the following SQL
+    queries:
 
+    - Drop the search trigger for the given table if it exists.
+    - Drop the search function for the given table if it exists.
 
     Example::
 
@@ -428,7 +425,7 @@ def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None)
         TSVector typed column which is used as the search index column
     :param metadata:
         Optional SQLAlchemy metadata object that is being used for autoloaded
-        Table. If None is given then new MetaData object is initialized within
+        Table. If None is given, then a new MetaData object is initialized within
         this function.
     :param options: Dictionary of configuration options
     """
