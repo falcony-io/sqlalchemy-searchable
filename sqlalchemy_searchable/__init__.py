@@ -449,6 +449,12 @@ with open(os.path.join(path, "expressions.sql")) as file:
 
 
 def make_searchable(metadata, mapper=sa.orm.Mapper, manager=search_manager, options={}):
+    """
+    Configure SQLAlchemy-Searchable for given SQLAlchemy metadata object.
+
+    :param metadata: SQLAlchemy metadata object
+    :param options: Dictionary of configuration options
+    """
     manager.options.update(options)
     event.listen(mapper, "instrument_class", manager.process_mapper)
     event.listen(mapper, "after_configured", manager.attach_ddl_listeners)
