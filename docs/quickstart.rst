@@ -1,6 +1,8 @@
 Quick start
 ===========
 
+.. currentmodule:: sqlalchemy_searchable
+
 Installation
 ------------
 
@@ -92,7 +94,6 @@ function::
 API
 ---
 
-.. module:: sqlalchemy_searchable
 .. autofunction:: make_searchable
 .. autofunction:: search
 
