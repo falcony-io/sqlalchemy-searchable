@@ -14,6 +14,10 @@ __version__ = "1.4.1"
 
 
 vectorizer = Vectorizer()
+"""
+An instance of :class:`Vectorizer` that keeps a track of the registered vectorizers. Use
+this as a decorator to register a function as a vectorizer.
+"""
 
 
 class SearchQueryMixin:
