@@ -83,12 +83,12 @@ After we've created the articles and populated the database, we can now perform
 full-text searches on them using the :func:`~sqlalchemy_searchable.search`
 function::
 
+    from sqlalchemy import select
     from sqlalchemy_searchable import search
 
-    query = session.query(Article)
-    query = search(query, "first")
-
-    print(query.first().name)
+    query = search(select(Article), "first")
+    article = session.scalars(query).first()
+    print(article.name)
     # Output: First article
 
 API

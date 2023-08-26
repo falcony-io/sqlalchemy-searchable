@@ -36,6 +36,9 @@ Unreleased
   the tests were only run on PostgreSQL 12.
 - Rewrite the documentation to be up-to-date with the codebase, to fix the
   grammar and formatting issues, and to ensure the code examples are correct.
+- The query interface is considered legacy in SQLAlchemy 2.0. Migrate the tests
+  and documentation to use ``Session.execute()`` in conjunction with ``select()`` to
+  run ORM queries.
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^

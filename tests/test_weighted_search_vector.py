@@ -61,7 +61,8 @@ class TestWeightedSearchFunction:
         session.commit()
 
     def test_weighted_search_results(self, session, WeightedTextItem):
-        query = session.query(WeightedTextItem)
-        first, second = search(query, "klaatu", sort=True).all()
+        first, second = session.scalars(
+            search(sa.select(WeightedTextItem), "klaatu", sort=True)
+        ).all()
         assert first.search_vector == "'barada':2B 'klaatu':1A 'nikto':3B"
         assert second.search_vector == "'barada':3B 'gort':1A 'klaatu':2B 'nikto':4B"
