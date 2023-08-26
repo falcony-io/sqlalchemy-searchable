@@ -3,7 +3,7 @@ requires      = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "SQLAlchemy-Searchable"
+name = "sqlalchemy-searchable"
 dynamic = ["version"]
 description = "Provides fulltext search capabilities for declarative SQLAlchemy models."
 readme = "README.rst"
