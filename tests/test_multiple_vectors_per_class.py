@@ -61,9 +61,8 @@ class TestMultipleSearchVectorsSearchFunction:
         session.add(TextMultiItem(name="ipsum", content="admin content"))
         session.commit()
 
-        query = session.query(TextMultiItem)
-        s1 = search(query, "ipsum", vector=TextMultiItem.name_vector)
-        assert s1.first().name == "ipsum"
+        s1 = search(sa.select(TextMultiItem), "ipsum", vector=TextMultiItem.name_vector)
+        assert session.scalars(s1).first().name == "ipsum"
 
     def test_without_auto_index(self, TextMultiItem):
         indexes = TextMultiItem.__table__.indexes

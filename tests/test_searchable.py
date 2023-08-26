@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import func, select
 from sqlalchemy.orm.query import Query
 
 from sqlalchemy_searchable import search, SearchQueryMixin
@@ -70,8 +71,8 @@ class TestSearchQueryMixin:
         assert query.count() == 2
 
     def test_search_specific_columns(self, TextItem, session):
-        query = search(session.query(TextItem.id), "admin")
-        assert query.count() == 1
+        query = search(select(TextItem.id), "admin").subquery()
+        assert session.scalar(select(func.count()).select_from(query)) == 1
 
     def test_sorted_search_results(self, TextItem, session, items):
         query = TextItemQuery(TextItem, session)
@@ -98,8 +99,8 @@ class TestUsesGlobalConfigOptionsAsFallbacks:
         session.commit()
 
     def test_uses_global_regconfig_as_fallback(self, session, TextItem):
-        query = search(session.query(TextItem.id), "the")
-        assert query.count() == 1
+        query = search(select(TextItem.id), "the").subquery()
+        assert session.scalar(select(func.count()).select_from(query)) == 1
 
 
 class TestSearchableInheritance:
