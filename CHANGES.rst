@@ -6,18 +6,36 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 Unreleased
 ^^^^^^^^^^
 
-- **BREAKING CHANGE**: Drop support for Python 3.6 and 3.7
-- **BREAKING CHANGE**: Drop support for SQLAlchemy 1.3
-- **BREAKING CHANGE**: Remove ``quote_identifier`` function
-- **BREAKING CHANGE**: Remove ``SearchManager.search_function_ddl`` method. Use ``CreateSearchFunctionSQL(column)`` instead.
-- **BREAKING CHANGE**: Remove ``SearchManager.search_trigger_ddl`` method. Use ``CreateSearchTriggerSQL(column)`` instead.
+- **BREAKING CHANGE**: Drop support for Python 3.6 and 3.7.
+- **BREAKING CHANGE**: Drop support for SQLAlchemy 1.3.
+- **BREAKING CHANGE**: Remove ``quote_identifier`` function.
+- **BREAKING CHANGE**: Remove ``SearchManager.search_function_ddl`` method. Use
+  ``CreateSearchFunctionSQL(column)`` instead.
+- **BREAKING CHANGE**: Remove ``SearchManager.search_trigger_ddl`` method. Use
+  ``CreateSearchTriggerSQL(column)`` instead.
+- Migrate from Travis CI to Github workflows in order to have a working CI
+  again.
 - Remove ``validators`` dependency
-- Add support for Python 3.10 and 3.11
-- Use the ``pyproject.toml`` standard to specify project metadata, dependencies and tool configuration. Use Hatch to build the project.
-- Add support for SQLAlchemy 2.0
-- Rewrite the test suite to use pytest fixtures ove classic xunit-style set-up
-- Fix ``parse_websearch`` tests on PostgreSQL 14 and later
-- Add PostgreSQL versions 11, 13, 14 and 15 to the CI build matrix. Previously, the tests were only run on PostgreSQL 12.
+- Add support for Python 3.10 and 3.11.
+- Use the ``pyproject.toml`` standard to specify project metadata, dependencies
+  and tool configuration. Use Hatch to build the project.
+- Use Ruff for linting the project, replacing both isort and flake8.
+- Upgrade Python syntax with pyupgrade to the minimum Python version supported.
+- Use Black to format Python code.
+- Add support for SQLAlchemy 2.0.
+- Use SQLAlchemy's compilation extension to build the SQL for creating and
+  dropping the search functions and triggers.
+- Update SQLAlchemy-Utils dependency to >=0.40.0.
+- Fix the deprecation warning for ``sqlalchemy.orm.mapper()`` in
+  ``make_searchable()`` and ``remove_listeners()``.
+- Migrate the Read the Docs configuration to use `.readthedocs.yaml`
+  configuration file.
+- Rewrite the test suite to use pytest fixtures ove classic xunit-style set-up.
+- Fix ``parse_websearch`` tests on PostgreSQL 14 and later.
+- Add PostgreSQL versions 11, 13, 14 and 15 to the CI build matrix. Previously,
+  the tests were only run on PostgreSQL 12.
+- Rewrite the documentation to be up-to-date with the codebase, to fix the
+  grammar and formatting issues, and to ensure the code examples are correct.
 
 1.4.1 (2021-06-15)
 ^^^^^^^^^^^^^^^^^^
