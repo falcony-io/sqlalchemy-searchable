@@ -32,9 +32,9 @@ dependencies = [
 ]
 
 [project.urls]
-Code            = "https://github.com/kvesteri/sqlalchemy-searchable"
+Code            = "https://github.com/falcony-io/sqlalchemy-searchable"
 Documentation   = "https://sqlalchemy-searchable.readthedocs.io/"
-"Issue Tracker" = "http://github.com/kvesteri/sqlalchemy-searchable/issues"
+"Issue Tracker" = "http://github.com/falcony-io/sqlalchemy-searchable/issues"
 
 [tool.hatch.version]
 path = "sqlalchemy_searchable/__init__.py"

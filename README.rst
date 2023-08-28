@@ -10,8 +10,8 @@ Resources
 ---------
 
 - `Documentation <https://sqlalchemy-searchable.readthedocs.io/>`_
-- `Issue Tracker <http://github.com/kvesteri/sqlalchemy-searchable/issues>`_
-- `Code <http://github.com/kvesteri/sqlalchemy-searchable/>`_
+- `Issue Tracker <http://github.com/falcony-io/sqlalchemy-searchable/issues>`_
+- `Code <http://github.com/falcony-io/sqlalchemy-searchable/>`_
 
 
 .. |Version Status| image:: https://img.shields.io/pypi/v/SQLAlchemy-Searchable.svg
