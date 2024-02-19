@@ -129,11 +129,6 @@ def Base(search_manager_regconfig):
 
 
 @pytest.fixture
-def remove_symbols():
-    return "-@."
-
-
-@pytest.fixture
 def search_trigger_name():
     return "{table}_{column}_trigger"
 
@@ -144,11 +139,8 @@ def search_trigger_function_name():
 
 
 @pytest.fixture
-def ts_vector_options(
-    remove_symbols, search_trigger_name, search_trigger_function_name
-):
+def ts_vector_options(search_trigger_name, search_trigger_function_name):
     return {
-        "remove_symbols": remove_symbols,
         "search_trigger_name": search_trigger_name,
         "search_trigger_function_name": search_trigger_function_name,
         "auto_index": True,
