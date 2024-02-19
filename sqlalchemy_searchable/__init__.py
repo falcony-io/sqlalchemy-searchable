@@ -381,6 +381,7 @@ def sync_trigger(
         Table. If None is given, then a new MetaData object is initialized within
         this function.
     :param options: Dictionary of configuration options
+    :param schema: The schema name for this table. Defaults to ``None``.
     :param update_rows:
         If set to False, the values in the vector column will remain unchanged
         until one of the indexed columns is updated.
@@ -452,6 +453,7 @@ def drop_trigger(
         Table. If None is given, then a new MetaData object is initialized within
         this function.
     :param options: Dictionary of configuration options
+    :param schema: The schema name for this table. Defaults to ``None``.
     """
     if metadata is None:
         metadata = sa.MetaData()
