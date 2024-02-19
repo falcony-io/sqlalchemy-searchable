@@ -24,7 +24,7 @@ class TestTypeVectorizers:
                 TSVectorType("name", "content", regconfig="simple")
             )
 
-            content = sa.Column(sa.UnicodeText)
+            content = sa.Column(sa.Text)
 
         @vectorizer(HSTORE)
         def hstore_vectorizer(column):

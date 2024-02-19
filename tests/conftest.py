@@ -7,9 +7,9 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    String,
+    Text,
     text,
-    Unicode,
-    UnicodeText,
 )
 from sqlalchemy.orm import (
     close_all_sessions,
@@ -176,12 +176,12 @@ def TextItem(Base, ts_vector_options):
 
         id = Column(Integer, primary_key=True, autoincrement=True)
 
-        name = Column(Unicode(255))
+        name = Column(String(255))
 
         search_vector = Column(TSVectorType("name", "content", **ts_vector_options))
         content_search_vector = Column(TSVectorType("content", **ts_vector_options))
 
-        content = Column(UnicodeText)
+        content = Column(Text)
 
     return TextItem
 
