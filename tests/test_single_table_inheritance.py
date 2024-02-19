@@ -21,11 +21,11 @@ class TestSearchableWithSingleTableInheritance(SchemaTestCase):
 
             id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
-            name = sa.Column(sa.Unicode(255))
+            name = sa.Column(sa.String(255))
 
             search_vector = sa.Column(TSVectorType("name", "content"))
 
-            content = sa.Column(sa.UnicodeText)
+            content = sa.Column(sa.Text)
 
         class Article(TextItem):
             created_at = sa.Column(sa.DateTime)

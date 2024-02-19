@@ -21,8 +21,8 @@ def WeightedTextItem(Base):
 
         id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
 
-        name = sa.Column(sa.Unicode(255))
-        content = sa.Column(sa.UnicodeText)
+        name = sa.Column(sa.String(255))
+        content = sa.Column(sa.Text)
         search_vector = sa.Column(
             TSVectorType("name", "content", weights={"name": "A", "content": "B"})
         )
