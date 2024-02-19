@@ -7,7 +7,7 @@ Unreleased
 ^^^^^^^^^^
 
 - Add support for Python 3.12
-
+- Add support for PostgreSQL 16
 
 2.0.0 (2023-08-28)
 ^^^^^^^^^^^^^^^^^^
