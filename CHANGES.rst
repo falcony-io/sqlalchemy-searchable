@@ -3,6 +3,12 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+Unreleased
+^^^^^^^^^^
+
+- Add support for Python 3.12
+
+
 2.0.0 (2023-08-28)
 ^^^^^^^^^^^^^^^^^^
 
