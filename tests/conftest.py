@@ -61,7 +61,6 @@ def engine():
     url = f"postgresql://{db_user}:{db_password}@localhost/{db_name}"
 
     engine = create_engine(url, future=True)
-    engine.echo = True
     with engine.begin() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS hstore"))
 
