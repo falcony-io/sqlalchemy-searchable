@@ -8,6 +8,8 @@ Unreleased
 
 - Add support for Python 3.12
 - Add support for PostgreSQL 16
+- Allow specifying schema in ``drop_trigger`` and ``sync_trigger`` (#95, pull
+  request by @acarapetis)
 
 2.0.0 (2023-08-28)
 ^^^^^^^^^^^^^^^^^^
