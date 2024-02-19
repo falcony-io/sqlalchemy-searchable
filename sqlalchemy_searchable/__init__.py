@@ -216,7 +216,6 @@ class SearchManager:
         self.options = self.default_options
         self.options.update(options)
         self.processed_columns = []
-        self.classes = set()
         self.listeners = []
 
     def option(self, column, name):
