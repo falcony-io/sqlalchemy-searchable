@@ -35,7 +35,16 @@ class TestSyncTrigger:
                         content TEXT,
                         "current_user" TEXT,
                         search_vector TSVECTOR
-                    )
+                    );
+
+                    CREATE SCHEMA another;
+
+                    CREATE TABLE another.article (
+                        name TEXT,
+                        content TEXT,
+                        "current_user" TEXT,
+                        search_vector TSVECTOR
+                    );
                     """
                 )
             )
@@ -43,7 +52,15 @@ class TestSyncTrigger:
         yield
 
         with engine.begin() as conn:
-            conn.execute(text("DROP TABLE article"))
+            conn.execute(
+                text(
+                    """
+                    DROP TABLE article;
+                    DROP TABLE another.article;
+                    DROP SCHEMA another;
+                    """
+                )
+            )
 
     def test_creates_triggers_and_functions(self, engine, ts_vector_options):
         with engine.begin() as conn:
@@ -61,6 +78,26 @@ class TestSyncTrigger:
                 )
             )
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
+        assert vector == "'content':4 'name':2"
+
+    def test_different_schema(self, engine):
+        with engine.begin() as conn:
+            sync_trigger(
+                conn,
+                "article",
+                "search_vector",
+                ["name", "content"],
+                schema="another",
+            )
+            conn.execute(
+                text(
+                    """INSERT INTO another.article (name, content)
+                     VALUES ('some name', 'some content')"""
+                )
+            )
+            vector = conn.execute(
+                text("SELECT search_vector FROM another.article")
+            ).scalar()
         assert vector == "'content':4 'name':2"
 
     def test_updates_column_values(self, engine, ts_vector_options):
