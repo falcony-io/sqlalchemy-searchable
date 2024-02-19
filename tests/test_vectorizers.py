@@ -32,7 +32,7 @@ class TestTypeVectorizers:
 
         return Article
 
-    def test_uses_column_vectorizer(self, Article, session):
+    def test_uses_type_vectorizer(self, Article, session):
         article = Article(name={"fi": "Joku artikkeli", "en": "Some article"})
         session.add(article)
         session.commit()
