@@ -289,7 +289,13 @@ search_manager = SearchManager()
 
 
 def sync_trigger(
-    conn, table_name, tsvector_column, indexed_columns, metadata=None, options=None
+    conn,
+    table_name,
+    tsvector_column,
+    indexed_columns,
+    metadata=None,
+    options=None,
+    schema=None,
 ):
     """Synchronize the search trigger and trigger function for the given table and
     search vector column. Internally, this function executes the following SQL
@@ -377,7 +383,12 @@ def sync_trigger(
     """
     if metadata is None:
         metadata = sa.MetaData()
-    table = sa.Table(table_name, metadata, autoload_with=conn)
+    table = sa.Table(
+        table_name,
+        metadata,
+        autoload_with=conn,
+        schema=schema,
+    )
     params = dict(
         tsvector_column=getattr(table.c, tsvector_column),
         indexed_columns=indexed_columns,
@@ -397,7 +408,14 @@ def sync_trigger(
     conn.execute(update_sql)
 
 
-def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None):
+def drop_trigger(
+    conn,
+    table_name,
+    tsvector_column,
+    metadata=None,
+    options=None,
+    schema=None,
+):
     """
     Drop the search trigger and trigger function for the given table and
     search vector column. Internally, this function executes the following SQL
@@ -431,7 +449,12 @@ def drop_trigger(conn, table_name, tsvector_column, metadata=None, options=None)
     """
     if metadata is None:
         metadata = sa.MetaData()
-    table = sa.Table(table_name, metadata, autoload_with=conn)
+    table = sa.Table(
+        table_name,
+        metadata,
+        autoload_with=conn,
+        schema=schema,
+    )
     params = dict(tsvector_column=getattr(table.c, tsvector_column), options=options)
     classes = [
         DropSearchTriggerSQL,
