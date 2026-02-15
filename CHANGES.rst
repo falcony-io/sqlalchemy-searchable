@@ -9,6 +9,12 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 - **BREAKING CHANGE**: Drop support for PostgreSQL 11, 12 and 13
 - **BREAKING CHANGE**: Drop support for Python 3.8 and 3.9
 - **BREAKING CHANGE**: Drop support for SQLAlchemy 1.4
+- **BREAKING CHANGE**: Remove ``SearchQueryMixin`` class. This mixin was designed for
+  the legacy SQLAlchemy Query interface, which has been superseded by the select-based
+  API in SQLAlchemy 2.0. Users should migrate to using the ``search()`` function with
+  ``select()`` statements (e.g., ``session.execute(search(select(Model), "query"))``
+  or ``session.scalars(search(select(Model), "query"))``). The mixin added unnecessary
+  complexity and was inconsistent with modern SQLAlchemy patterns.
 
 2.2.0 (2026-02-15)
 ^^^^^^^^^^^^^^^^^^

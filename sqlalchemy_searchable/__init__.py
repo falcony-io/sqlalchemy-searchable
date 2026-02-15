@@ -20,19 +20,6 @@ this as a decorator to register a function as a vectorizer.
 """
 
 
-class SearchQueryMixin:
-    def search(self, search_query, vector=None, regconfig=None, sort=False):
-        """
-        Search given query with full text search.
-
-        :param search_query: the search query
-        :param vector: search vector to use
-        :param regconfig: postgresql regconfig to be used
-        :param sort: order results by relevance (quality of hit)
-        """
-        return search(self, search_query, vector=vector, regconfig=regconfig, sort=sort)
-
-
 def inspect_search_vectors(entity):
     return [
         getattr(entity, key).property.columns[0]

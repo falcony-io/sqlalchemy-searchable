@@ -13,7 +13,6 @@ SQLAlchemy-Searchable provides `full text search`_ capabilities for SQLAlchemy_ 
    configuration
    vectorizers
    alembic_migrations
-   integrations
 
 
 .. _`full text search`: https://en.wikipedia.org/wiki/Full_text_search

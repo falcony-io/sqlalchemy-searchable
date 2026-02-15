@@ -1,15 +1,10 @@
 import pytest
 from sqlalchemy import func, select
-from sqlalchemy.orm.query import Query
 
-from sqlalchemy_searchable import search, SearchQueryMixin
-
-
-class TextItemQuery(Query, SearchQueryMixin):
-    pass
+from sqlalchemy_searchable import search
 
 
-class TestSearchQueryMixin:
+class TestSearch:
     @pytest.fixture(
         params=[
             "{table}_{column}_trigger",
@@ -43,40 +38,43 @@ class TestSearchQueryMixin:
         return items
 
     def test_searches_through_all_fulltext_indexed_fields(self, TextItem, session):
-        assert TextItemQuery(TextItem, session).search("admin").count() == 1
+        query = search(select(TextItem), "admin")
+        assert session.scalar(select(func.count()).select_from(query.subquery())) == 1
 
     def test_search_supports_term_splitting(self, TextItem, session):
-        assert TextItemQuery(TextItem, session).search("content").count() == 3
+        query = search(select(TextItem), "content")
+        assert session.scalar(select(func.count()).select_from(query.subquery())) == 3
 
     def test_term_splitting_supports_multiple_spaces(self, TextItem, session):
-        query = TextItemQuery(TextItem, session)
-        assert query.search("content  some").first().name == "index"
-        assert query.search("content   some").first().name == "index"
-        assert query.search("  ").count() == 4
+        query = search(select(TextItem), "content  some")
+        assert session.scalars(query).first().name == "index"
+        query = search(select(TextItem), "content   some")
+        assert session.scalars(query).first().name == "index"
+        query = search(select(TextItem), "  ")
+        assert session.scalar(select(func.count()).select_from(query.subquery())) == 4
 
     def test_search_by_email(self, TextItem, session):
-        assert TextItemQuery(TextItem, session).search("someone@example.com").count()
+        query = search(select(TextItem), "someone@example.com")
+        assert session.scalar(select(func.count()).select_from(query.subquery())) > 0
 
     def test_supports_regconfig_parameter(self, TextItem, session):
-        query = TextItemQuery(TextItem, session)
-        query = query.search("orrimorri", regconfig="finnish")
+        query = search(select(TextItem), "orrimorri", regconfig="finnish")
         assert "parse_websearch(%(parse_websearch_1)s, %(parse_websearch_2)s)" in str(
-            query.statement.compile(session.bind)
+            query.compile(session.bind)
         )
 
     def test_supports_vector_parameter(self, TextItem, session):
         vector = TextItem.content_search_vector
-        query = TextItemQuery(TextItem, session)
-        query = query.search("content", vector=vector)
-        assert query.count() == 2
+        query = search(select(TextItem), "content", vector=vector)
+        assert session.scalar(select(func.count()).select_from(query.subquery())) == 2
 
     def test_search_specific_columns(self, TextItem, session):
         query = search(select(TextItem.id), "admin").subquery()
         assert session.scalar(select(func.count()).select_from(query)) == 1
 
     def test_sorted_search_results(self, TextItem, session, items):
-        query = TextItemQuery(TextItem, session)
-        sorted_results = query.search("some content", sort=True).all()
+        query = search(select(TextItem), "some content", sort=True)
+        sorted_results = session.scalars(query).all()
         assert sorted_results == items[0:2] + [items[3]]
 
 
@@ -112,4 +110,5 @@ class TestSearchableInheritance:
         session.commit()
 
     def test_supports_inheritance(self, session, Article):
-        assert TextItemQuery(Article, session).search("content").count() == 2
+        query = search(select(Article), "content")
+        assert session.scalar(select(func.count()).select_from(query.subquery())) == 2
