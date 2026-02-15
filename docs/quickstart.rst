@@ -10,7 +10,7 @@ SQLAlchemy-Searchable is available on PyPI_. It can be installed using pip_::
 
     pip install SQLAlchemy-Searchable
 
-SQLAlchemy-Searchable requires Python 3.8 or newer, either the cPython or PyPy
+SQLAlchemy-Searchable requires Python 3.10 or newer, either the cPython or PyPy
 implementation.
 
 .. _PyPI: https://pypi.python.org/pypi/SQLAlchemy-Searchable

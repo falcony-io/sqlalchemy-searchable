@@ -45,13 +45,7 @@ jobs:
           - python: "3.10"
             postgresql: "14"
 
-          - python: "3.9"
-            postgresql: "14"
-
-          - python: "3.8"
-            postgresql: "14"
-
-          - python: "pypy3.9"
+          - python: "pypy3.10"
             postgresql: "14"
 
     steps:
