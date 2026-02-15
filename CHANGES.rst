@@ -8,6 +8,7 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 
 - **BREAKING CHANGE**: Drop support for PostgreSQL 11, 12 and 13
 - **BREAKING CHANGE**: Drop support for Python 3.8 and 3.9
+- **BREAKING CHANGE**: Drop support for SQLAlchemy 1.4
 
 2.2.0 (2026-02-15)
 ^^^^^^^^^^^^^^^^^^
