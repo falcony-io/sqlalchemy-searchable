@@ -167,7 +167,7 @@ class CreateSearchTriggerSQL(SQLConstruct, DDLElement, Executable):
             return self.search_function_name + "()"
         return "tsvector_update_trigger({arguments})".format(
             arguments=", ".join(
-                [self.tsvector_column.name, "'%s'" % self.options["regconfig"]]
+                [self.tsvector_column.name, f"'{self.options['regconfig']}'"]
                 + self.indexed_columns
             )
         )
@@ -189,7 +189,7 @@ class DropSearchFunctionSQL(SQLConstruct, DDLElement, Executable):
 
 @compiles(DropSearchFunctionSQL)
 def compile_drop_search_function_sql(element, compiler):
-    return "DROP FUNCTION IF EXISTS %s()" % element.search_function_name
+    return f"DROP FUNCTION IF EXISTS {element.search_function_name}()"
 
 
 class DropSearchTriggerSQL(SQLConstruct, DDLElement, Executable):
