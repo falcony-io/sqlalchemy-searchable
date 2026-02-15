@@ -31,10 +31,10 @@ jobs:
       matrix:
         include:
           - python: "3.14"
-            postgresql: "16"
+            postgresql: "18"
 
           - python: "3.13"
-            postgresql: "16"
+            postgresql: "17"
 
           - python: "3.12"
             postgresql: "16"
