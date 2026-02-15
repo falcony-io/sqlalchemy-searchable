@@ -38,19 +38,6 @@ if __pypy__:
     compat.register()
 
 
-def pytest_configure(config):
-    config.addinivalue_line(
-        "markers",
-        "postgresql_min_version(min_version): "
-        "skip the test if PostgreSQL version is less than min_version",
-    )
-    config.addinivalue_line(
-        "markers",
-        "postgresql_max_version(max_version): "
-        "skip the test if PostgreSQL version is greater than max_version",
-    )
-
-
 @pytest.fixture
 def engine():
     db_user = os.environ.get("SQLALCHEMY_SEARCHABLE_TEST_USER", "postgres")
@@ -66,35 +53,6 @@ def engine():
 
     yield engine
     engine.dispose()
-
-
-@pytest.fixture
-def postgresql_version(engine):
-    with engine.connect():
-        major, _ = engine.dialect.server_version_info
-        return major
-
-
-@pytest.fixture(autouse=True)
-def check_postgresql_min_version(request, postgresql_version):
-    postgresql_min_version_mark = request.node.get_closest_marker(
-        "postgresql_min_version"
-    )
-    if postgresql_min_version_mark:
-        min_version = postgresql_min_version_mark.args[0]
-        if postgresql_version < min_version:
-            pytest.skip(f"Requires PostgreSQL >= {min_version}")
-
-
-@pytest.fixture(autouse=True)
-def check_postgresql_max_version(request, postgresql_version):
-    postgresql_max_version_mark = request.node.get_closest_marker(
-        "postgresql_max_version"
-    )
-    if postgresql_max_version_mark:
-        max_version = postgresql_max_version_mark.args[0]
-        if postgresql_version > max_version:
-            pytest.skip(f"Requires PostgreSQL <= {max_version}")
 
 
 @pytest.fixture
