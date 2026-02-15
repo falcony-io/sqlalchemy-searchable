@@ -60,7 +60,7 @@ def engine():
     )
     url = f"postgresql://{db_user}:{db_password}@localhost/{db_name}"
 
-    engine = create_engine(url, future=True)
+    engine = create_engine(url)
     with engine.begin() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS hstore"))
 
@@ -99,8 +99,8 @@ def check_postgresql_max_version(request, postgresql_version):
 
 @pytest.fixture
 def session(engine):
-    Session = sessionmaker(bind=engine, future=True)
-    session = Session(future=True)
+    Session = sessionmaker(engine)
+    session = Session()
 
     yield session
 
