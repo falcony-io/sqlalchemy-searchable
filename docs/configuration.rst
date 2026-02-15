@@ -9,25 +9,15 @@ search trigger, index and search vector columns.
 Global configuration options
 ----------------------------
 
-The following configuration options can be defined globally by passing them to
-:func:`make_searchable` function:
-
-``search_trigger_name``
-    Defines the name of the search database trigger. The default naming
-    convention is ``"{table}_{column}_trigger"``.
-
-``search_trigger_function_name``
-    Defines the name of the database search vector updating function. The
-    default naming convention is ``{table}_{column}_update``.
-
-``regconfig``
-    This is the PostgreSQL text search configuration that determines the
-    language configuration used for searching. The default setting is
-    ``"pg_catalog.english"``.
+Global configuration options can be defined by passing a :class:`SearchOptions`
+instance to the :func:`make_searchable` function. See the :class:`SearchOptions`
+API documentation for details on all available configuration options.
 
 Here's an example of how to leverage these options::
 
-    make_searchable(Base.metadata, options={"regconfig": "pg_catalog.finnish"})
+    from sqlalchemy_searchable import make_searchable, SearchOptions
+
+    make_searchable(Base.metadata, options=SearchOptions(regconfig="pg_catalog.finnish"))
 
 Changing catalog for search vector
 ----------------------------------
@@ -138,3 +128,9 @@ to take into account situations where ``Category.search_vector`` might be
     combined_search_vector = Article.search_vector | sa.func.coalesce(
         Category.search_vector, ""
     )
+
+API
+---
+
+.. autoclass:: SearchOptions
+   :members:
