@@ -88,15 +88,19 @@ class SQLConstruct:
             self.indexed_columns = None
 
     def init_options(self, options=None):
-        if not options:
-            options = {}
-        for key, value in SearchManager.default_options.items():
-            try:
-                option = self.tsvector_column.type.options[key]
-            except (KeyError, AttributeError):
-                option = value
-            options.setdefault(key, option)
-        return options
+        # Priority order (highest to lowest):
+        # 1. Column-specific options from tsvector_column.type.options
+        # 2. Passed options parameter
+        # 3. SearchManager.default_options
+        result = SearchManager.default_options.copy()
+        if options:
+            result.update(options)
+        # Column-specific options override everything
+        if hasattr(self.tsvector_column.type, "options"):
+            for key in result:
+                if key in self.tsvector_column.type.options:
+                    result[key] = self.tsvector_column.type.options[key]
+        return result
 
     @property
     def table_name(self):
@@ -212,9 +216,10 @@ class SearchManager:
         "auto_index": True,
     }
 
-    def __init__(self, options={}):
-        self.options = self.default_options
-        self.options.update(options)
+    def __init__(self, options=None):
+        self.options = self.default_options.copy()
+        if options:
+            self.options.update(options)
         self.processed_columns = []
         self.listeners = []
 
@@ -274,13 +279,25 @@ class SearchManager:
                     column
                 ):
                     self.add_listener(
-                        (table, "after_create", CreateSearchFunctionSQL(column))
+                        (
+                            table,
+                            "after_create",
+                            CreateSearchFunctionSQL(column, options=self.options),
+                        )
                     )
                     self.add_listener(
-                        (table, "after_drop", DropSearchFunctionSQL(column))
+                        (
+                            table,
+                            "after_drop",
+                            DropSearchFunctionSQL(column, options=self.options),
+                        )
                     )
                 self.add_listener(
-                    (table, "after_create", CreateSearchTriggerSQL(column))
+                    (
+                        table,
+                        "after_create",
+                        CreateSearchTriggerSQL(column, options=self.options),
+                    )
                 )
 
 
@@ -478,14 +495,17 @@ with open(os.path.join(path, "expressions.sql")) as file:
     sql_expressions = DDL(file.read())
 
 
-def make_searchable(metadata, mapper=sa.orm.Mapper, manager=search_manager, options={}):
+def make_searchable(
+    metadata, mapper=sa.orm.Mapper, manager=search_manager, options=None
+):
     """
     Configure SQLAlchemy-Searchable for given SQLAlchemy metadata object.
 
     :param metadata: SQLAlchemy metadata object
     :param options: Dictionary of configuration options
     """
-    manager.options.update(options)
+    if options:
+        manager.options.update(options)
     event.listen(mapper, "instrument_class", manager.process_mapper)
     event.listen(mapper, "after_configured", manager.attach_ddl_listeners)
     event.listen(metadata, "before_create", sql_expressions)
