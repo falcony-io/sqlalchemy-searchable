@@ -30,6 +30,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - python: "3.14"
+            postgresql: "16"
+
+          - python: "3.13"
+            postgresql: "16"
+
           - python: "3.12"
             postgresql: "16"
 
