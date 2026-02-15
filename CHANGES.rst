@@ -9,6 +9,8 @@ Unreleased
 - Add support for Python 3.13 and 3.14
 - Add support for PostgreSQL 17 and 18
 - Use f-strings instead of percent format
+- Fix mutable default argument antipattern in ``SearchManager.__init__()`` and
+  ``make_searchable()`` that could cause shared state bugs
 
 2.1.0 (2024-02-19)
 ^^^^^^^^^^^^^^^^^^
