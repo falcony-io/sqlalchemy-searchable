@@ -8,6 +8,7 @@ Unreleased
 
 - Add support for Python 3.13 and 3.14
 - Add support for PostgreSQL 17 and 18
+- Use f-strings instead of percent format
 
 2.1.0 (2024-02-19)
 ^^^^^^^^^^^^^^^^^^
