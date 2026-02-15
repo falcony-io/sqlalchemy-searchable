@@ -3,14 +3,15 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
-Unreleased
-^^^^^^^^^^
+2.2.0 (2026-02-15)
+^^^^^^^^^^^^^^^^^^
 
 - Add support for Python 3.13 and 3.14
 - Add support for PostgreSQL 17 and 18
 - Use f-strings instead of percent format
 - Fix mutable default argument antipattern in ``SearchManager.__init__()`` and
   ``make_searchable()`` that could cause shared state bugs
+- Remove unused ``SearchManager.classes`` property
 
 2.1.0 (2024-02-19)
 ^^^^^^^^^^^^^^^^^^
