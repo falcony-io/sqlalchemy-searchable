@@ -1,6 +1,10 @@
 version: 2
 updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
   - package-ecosystem: pip
-    directory: '/docs'
+    directory: "/docs"
     schedule:
       interval: monthly
