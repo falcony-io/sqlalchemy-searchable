@@ -15,6 +15,9 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
   ``select()`` statements (e.g., ``session.execute(search(select(Model), "query"))``
   or ``session.scalars(search(select(Model), "query"))``). The mixin added unnecessary
   complexity and was inconsistent with modern SQLAlchemy patterns.
+- **BREAKING CHANGE**: Replace dictionary-based ``options`` parameter with ``SearchOptions``
+  dataclass. This provides better type safety, IDE autocomplete support, and prevents
+  runtime errors from typos in option names.
 
 2.2.0 (2026-02-15)
 ^^^^^^^^^^^^^^^^^^

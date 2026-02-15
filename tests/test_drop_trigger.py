@@ -44,7 +44,7 @@ class TestDropTrigger:
         with engine.begin() as conn:
             conn.execute(text("DROP TABLE article"))
 
-    def test_drops_triggers_and_functions(self, engine, ts_vector_options):
+    def test_drops_triggers_and_functions(self, engine, search_options):
         def trigger_exist(conn):
             return conn.execute(
                 text(
@@ -54,7 +54,7 @@ class TestDropTrigger:
                     """
                 ),
                 {
-                    "trigger_name": ts_vector_options["search_trigger_name"].format(
+                    "trigger_name": search_options.search_trigger_name.format(
                         table="article",
                         column="search_vector",
                     )
@@ -70,9 +70,7 @@ class TestDropTrigger:
                    """
                 ),
                 {
-                    "function_name": ts_vector_options[
-                        "search_trigger_function_name"
-                    ].format(
+                    "function_name": search_options.search_trigger_function_name.format(
                         table="article",
                         column="search_vector",
                     )
@@ -85,13 +83,13 @@ class TestDropTrigger:
                 "article",
                 "search_vector",
                 ["name", "content"],
-                options=ts_vector_options,
+                options=search_options,
             )
 
             assert trigger_exist(conn) == 1
             assert function_exist(conn) == 1
 
-            drop_trigger(conn, "article", "search_vector", options=ts_vector_options)
+            drop_trigger(conn, "article", "search_vector", options=search_options)
 
             assert trigger_exist(conn) == 0
             assert function_exist(conn) == 0

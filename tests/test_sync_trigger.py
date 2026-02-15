@@ -62,14 +62,14 @@ class TestSyncTrigger:
                 )
             )
 
-    def test_creates_triggers_and_functions(self, engine, ts_vector_options):
+    def test_creates_triggers_and_functions(self, engine, search_options):
         with engine.begin() as conn:
             sync_trigger(
                 conn,
                 "article",
                 "search_vector",
                 ["name", "content"],
-                options=ts_vector_options,
+                options=search_options,
             )
             conn.execute(
                 text(
@@ -100,14 +100,14 @@ class TestSyncTrigger:
             ).scalar()
         assert vector == "'content':4 'name':2"
 
-    def test_updates_column_values(self, engine, ts_vector_options):
+    def test_updates_column_values(self, engine, search_options):
         with engine.begin() as conn:
             sync_trigger(
                 conn,
                 "article",
                 "search_vector",
                 ["name", "content"],
-                options=ts_vector_options,
+                options=search_options,
             )
             conn.execute(
                 text(
@@ -121,13 +121,13 @@ class TestSyncTrigger:
                 "article",
                 "search_vector",
                 ["content"],
-                options=ts_vector_options,
+                options=search_options,
             )
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':2"
 
     def test_does_not_update_column_values_when_updating_rows_disabled(
-        self, engine, ts_vector_options
+        self, engine, search_options
     ):
         with engine.begin() as conn:
             sync_trigger(
@@ -135,7 +135,7 @@ class TestSyncTrigger:
                 "article",
                 "search_vector",
                 ["name", "content"],
-                options=ts_vector_options,
+                options=search_options,
             )
             conn.execute(
                 text(
@@ -149,13 +149,13 @@ class TestSyncTrigger:
                 "article",
                 "search_vector",
                 ["content"],
-                options=ts_vector_options,
+                options=search_options,
                 update_rows=False,
             )
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':4 'name':2"
 
-    def test_custom_vectorizers(sel, Base, engine, session, ts_vector_options):
+    def test_custom_vectorizers(sel, Base, engine, session, search_options):
         articles = sa.Table(
             "article",
             Base.metadata,
@@ -173,7 +173,7 @@ class TestSyncTrigger:
                 "search_vector",
                 ["name", "content"],
                 metadata=Base.metadata,
-                options=ts_vector_options,
+                options=search_options,
             )
             conn.execute(
                 text(
@@ -184,7 +184,7 @@ class TestSyncTrigger:
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':5 'good':4 'name':2"
 
-    def test_trigger_with_reserved_word(self, engine, ts_vector_options):
+    def test_trigger_with_reserved_word(self, engine, search_options):
         with engine.begin() as conn:
             conn.execute(
                 text(
@@ -198,7 +198,7 @@ class TestSyncTrigger:
                 "article",
                 "search_vector",
                 ["name", "content", "current_user"],
-                options=ts_vector_options,
+                options=search_options,
             )
             # raises ProgrammingError without reserved_words:
             conn.execute(text("UPDATE article SET name=name"))

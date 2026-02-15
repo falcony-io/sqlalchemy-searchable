@@ -23,6 +23,7 @@ from sqlalchemy_searchable import (
     make_searchable,
     remove_listeners,
     search_manager,
+    SearchOptions,
     vectorizer,
 )
 
@@ -74,13 +75,16 @@ def search_manager_regconfig():
 @pytest.fixture
 def Base(search_manager_regconfig):
     Base = declarative_base()
-    make_searchable(Base.metadata)
     if search_manager_regconfig:
-        search_manager.options["regconfig"] = search_manager_regconfig
+        make_searchable(
+            Base.metadata,
+            options=SearchOptions(regconfig=search_manager_regconfig),
+        )
+    else:
+        make_searchable(Base.metadata)
 
     yield Base
 
-    search_manager.options["regconfig"] = "pg_catalog.english"
     search_manager.processed_columns = []
     vectorizer.clear()
     remove_listeners(Base.metadata)
@@ -97,12 +101,12 @@ def search_trigger_function_name():
 
 
 @pytest.fixture
-def ts_vector_options(search_trigger_name, search_trigger_function_name):
-    return {
-        "search_trigger_name": search_trigger_name,
-        "search_trigger_function_name": search_trigger_function_name,
-        "auto_index": True,
-    }
+def search_options(search_trigger_name, search_trigger_function_name):
+    return SearchOptions(
+        search_trigger_name=search_trigger_name,
+        search_trigger_function_name=search_trigger_function_name,
+        auto_index=True,
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -119,7 +123,17 @@ def models(TextItem, Article):
 
 
 @pytest.fixture
-def TextItem(Base, ts_vector_options):
+def TextItem(
+    Base,
+    search_trigger_function_name,
+    search_trigger_name,
+):
+    ts_vector_options = {
+        "auto_index": True,
+        "search_trigger_name": search_trigger_name,
+        "search_trigger_function_name": search_trigger_function_name,
+    }
+
     class TextItem(Base):
         __tablename__ = "textitem"
 

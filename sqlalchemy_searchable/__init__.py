@@ -1,5 +1,7 @@
+import dataclasses
 import os
 from functools import reduce
+from typing import Literal
 
 import sqlalchemy as sa
 from sqlalchemy import event
@@ -11,6 +13,38 @@ from sqlalchemy_utils import TSVectorType
 from .vectorizers import Vectorizer
 
 __version__ = "2.2.0"
+
+
+@dataclasses.dataclass(frozen=True)
+class SearchOptions:
+    """
+    Configuration options for full-text search functionality.
+
+    This dataclass provides configuration settings for PostgreSQL full-text search
+    triggers, functions, and indexing behavior. All instances are immutable (frozen).
+    """
+
+    #: Template string for the search trigger name. Available placeholders are
+    #: ``{table}`` and ``{column}``.
+    search_trigger_name: str = "{table}_{column}_trigger"
+
+    #: Template string for the search trigger function name. Available placeholders
+    #: are ``{table}`` and ``{column}``.
+    search_trigger_function_name: str = "{table}_{column}_update"
+
+    #: PostgreSQL text search configuration name. This determines the language-specific
+    #: rules for stemming and stop words.
+    regconfig: str = "pg_catalog.english"
+
+    #: Dictionary mapping column names to their search weights (A, B, C, or D), where
+    #: A is the highest weight and D is the lowest. This affects relevance ranking in
+    #: search results.
+    weights: dict[str, Literal["A", "B", "C", "D"]] = dataclasses.field(
+        default_factory=dict
+    )
+
+    #: Whether to automatically create a GIN index on the search vector column.
+    auto_index: bool = True
 
 
 vectorizer = Vectorizer()
@@ -49,7 +83,7 @@ def search(query, search_query, vector=None, regconfig=None, sort=False):
         vector = search_vectors[0]
 
     if regconfig is None:
-        regconfig = search_manager.options["regconfig"]
+        regconfig = search_manager.options.regconfig
 
     query = query.filter(
         vector.op("@@")(sa.func.parse_websearch(regconfig, search_query))
@@ -66,28 +100,13 @@ class SQLConstruct:
     def __init__(self, tsvector_column, indexed_columns=None, options=None):
         self.table = tsvector_column.table
         self.tsvector_column = tsvector_column
-        self.options = self.init_options(options)
+        self.options = options or SearchOptions()
         if indexed_columns:
             self.indexed_columns = list(indexed_columns)
         elif hasattr(self.tsvector_column.type, "columns"):
             self.indexed_columns = list(self.tsvector_column.type.columns)
         else:
             self.indexed_columns = None
-
-    def init_options(self, options=None):
-        # Priority order (highest to lowest):
-        # 1. Column-specific options from tsvector_column.type.options
-        # 2. Passed options parameter
-        # 3. SearchManager.default_options
-        result = SearchManager.default_options.copy()
-        if options:
-            result.update(options)
-        # Column-specific options override everything
-        if hasattr(self.tsvector_column.type, "options"):
-            for key in result:
-                if key in self.tsvector_column.type.options:
-                    result[key] = self.tsvector_column.type.options[key]
-        return result
 
     @property
     def table_name(self):
@@ -98,13 +117,13 @@ class SQLConstruct:
 
     @property
     def search_function_name(self):
-        return self.options["search_trigger_function_name"].format(
+        return self.options.search_trigger_function_name.format(
             table=self.table.name, column=self.tsvector_column.name
         )
 
     @property
     def search_trigger_name(self):
-        return self.options["search_trigger_name"].format(
+        return self.options.search_trigger_name.format(
             table=self.table.name, column=self.tsvector_column.name
         )
 
@@ -117,9 +136,9 @@ class SQLConstruct:
         else:
             value = vectorizer_func(value)
         value = sa.func.coalesce(value, sa.text("''"))
-        value = sa.func.to_tsvector(sa.literal(self.options["regconfig"]), value)
-        if column.name in self.options["weights"]:
-            weight = self.options["weights"][column.name]
+        value = sa.func.to_tsvector(sa.literal(self.options.regconfig), value)
+        if column.name in self.options.weights:
+            weight = self.options.weights[column.name]
             value = sa.func.setweight(value, weight)
         return value
 
@@ -151,14 +170,14 @@ def compile_create_search_function_sql(element, compiler):
 class CreateSearchTriggerSQL(SQLConstruct, DDLElement, Executable):
     @property
     def search_trigger_function_with_trigger_args(self):
-        if self.options["weights"] or any(
+        if self.options.weights or any(
             getattr(self.table.c, column) in vectorizer
             for column in self.indexed_columns
         ):
             return self.search_function_name + "()"
         return "tsvector_update_trigger({arguments})".format(
             arguments=", ".join(
-                [self.tsvector_column.name, f"'{self.options['regconfig']}'"]
+                [self.tsvector_column.name, f"'{self.options.regconfig}'"]
                 + self.indexed_columns
             )
         )
@@ -195,26 +214,10 @@ def compile_drop_search_trigger_sql(element, compiler):
 
 
 class SearchManager:
-    default_options = {
-        "search_trigger_name": "{table}_{column}_trigger",
-        "search_trigger_function_name": "{table}_{column}_update",
-        "regconfig": "pg_catalog.english",
-        "weights": (),
-        "auto_index": True,
-    }
-
-    def __init__(self, options=None):
-        self.options = self.default_options.copy()
-        if options:
-            self.options.update(options)
+    def __init__(self, options: SearchOptions | None = None):
+        self.options = options or SearchOptions()
         self.processed_columns = []
         self.listeners = []
-
-    def option(self, column, name):
-        try:
-            return column.type.options[name]
-        except (AttributeError, KeyError):
-            return self.options[name]
 
     def inspect_columns(self, table):
         """
@@ -237,7 +240,8 @@ class SearchManager:
             if column in self.processed_columns:
                 continue
 
-            if self.option(column, "auto_index"):
+            options = dataclasses.replace(self.options, **column.type.options)
+            if options.auto_index:
                 self.append_index(cls, column)
 
             self.processed_columns.append(column)
@@ -262,28 +266,27 @@ class SearchManager:
             # date.
             if column.type.columns:
                 table = column.table
-                if self.option(column, "weights") or vectorizer.contains_tsvector(
-                    column
-                ):
+                options = dataclasses.replace(self.options, **column.type.options)
+                if options.weights or vectorizer.contains_tsvector(column):
                     self.add_listener(
                         (
                             table,
                             "after_create",
-                            CreateSearchFunctionSQL(column, options=self.options),
+                            CreateSearchFunctionSQL(column, options=options),
                         )
                     )
                     self.add_listener(
                         (
                             table,
                             "after_drop",
-                            DropSearchFunctionSQL(column, options=self.options),
+                            DropSearchFunctionSQL(column, options=options),
                         )
                     )
                 self.add_listener(
                     (
                         table,
                         "after_create",
-                        CreateSearchTriggerSQL(column, options=self.options),
+                        CreateSearchTriggerSQL(column, options=options),
                     )
                 )
 
@@ -297,7 +300,7 @@ def sync_trigger(
     tsvector_column,
     indexed_columns,
     metadata=None,
-    options=None,
+    options: SearchOptions | None = None,
     schema=None,
     update_rows=True,
 ):
@@ -383,7 +386,7 @@ def sync_trigger(
         Optional SQLAlchemy metadata object that is being used for autoloaded
         Table. If None is given, then a new MetaData object is initialized within
         this function.
-    :param options: Dictionary of configuration options
+    :param options: :class:`SearchOptions` instance for configuration
     :param schema: The schema name for this table. Defaults to ``None``.
     :param update_rows:
         If set to False, the values in the vector column will remain unchanged
@@ -423,7 +426,7 @@ def drop_trigger(
     table_name,
     tsvector_column,
     metadata=None,
-    options=None,
+    options: SearchOptions | None = None,
     schema=None,
 ):
     """
@@ -455,7 +458,7 @@ def drop_trigger(
         Optional SQLAlchemy metadata object that is being used for autoloaded
         Table. If None is given, then a new MetaData object is initialized within
         this function.
-    :param options: Dictionary of configuration options
+    :param options: :class:`SearchOptions` instance for configuration
     :param schema: The schema name for this table. Defaults to ``None``.
     """
     if metadata is None:
@@ -483,16 +486,19 @@ with open(os.path.join(path, "expressions.sql")) as file:
 
 
 def make_searchable(
-    metadata, mapper=sa.orm.Mapper, manager=search_manager, options=None
+    metadata,
+    mapper=sa.orm.Mapper,
+    manager=search_manager,
+    options: SearchOptions | None = None,
 ):
     """
     Configure SQLAlchemy-Searchable for given SQLAlchemy metadata object.
 
     :param metadata: SQLAlchemy metadata object
-    :param options: Dictionary of configuration options
+    :param options: :class:`SearchOptions` instance for configuration
     """
     if options:
-        manager.options.update(options)
+        manager.options = options
     event.listen(mapper, "instrument_class", manager.process_mapper)
     event.listen(mapper, "after_configured", manager.attach_ddl_listeners)
     event.listen(metadata, "before_create", sql_expressions)
