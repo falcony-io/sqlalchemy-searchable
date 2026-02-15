@@ -3,6 +3,11 @@ Changelog
 
 Here you can see the full list of changes between each SQLAlchemy-Searchable release.
 
+3.0.0 (unreleased)
+^^^^^^^^^^^^^^^^^^
+
+- **BREAKING CHANGE**: Drop support for PostgreSQL 11, 12 and 13
+
 2.2.0 (2026-02-15)
 ^^^^^^^^^^^^^^^^^^
 

@@ -46,13 +46,13 @@ jobs:
             postgresql: "14"
 
           - python: "3.9"
-            postgresql: "13"
+            postgresql: "14"
 
           - python: "3.8"
-            postgresql: "12"
+            postgresql: "14"
 
           - python: "pypy3.9"
-            postgresql: "11"
+            postgresql: "14"
 
     steps:
       - uses: actions/checkout@v3
