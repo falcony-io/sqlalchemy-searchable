@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 import sqlalchemy as sa
-from sqlalchemy.orm import DeclarativeBase, Session
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy_utils import TSVectorType
 
 from sqlalchemy_searchable import search
@@ -29,17 +29,17 @@ class TestMultipleSearchVectorsPerClass(SchemaTestCase):
         class TextItem(Base):  # type: ignore[valid-type, misc]
             __tablename__ = "textitem"
 
-            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+            id: Mapped[int] = mapped_column(primary_key=True)
 
-            name = sa.Column(sa.String(255))
+            name: Mapped[str]
 
-            content = sa.Column(sa.Text)
+            content: Mapped[str]
 
-            name_vector: sa.Column[TSVectorType] = sa.Column(
+            name_vector: Mapped[TSVectorType] = mapped_column(
                 TSVectorType("name", auto_index=True)
             )
 
-            content_vector: sa.Column[TSVectorType] = sa.Column(
+            content_vector: Mapped[TSVectorType] = mapped_column(
                 TSVectorType("content", auto_index=True)
             )
 
@@ -50,14 +50,14 @@ class TestMultipleSearchVectorsSearchFunction:
         class TextMultiItem(Base):  # type: ignore[valid-type, misc]
             __tablename__ = "textmultiitem"
 
-            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+            id: Mapped[int] = mapped_column(primary_key=True)
 
-            name = sa.Column(sa.String(255))
-            content = sa.Column(sa.Text)
-            name_vector: sa.Column[TSVectorType] = sa.Column(
+            name: Mapped[str]
+            content: Mapped[str]
+            name_vector: Mapped[TSVectorType] = mapped_column(
                 TSVectorType("name", auto_index=False)
             )
-            content_vector: sa.Column[TSVectorType] = sa.Column(
+            content_vector: Mapped[TSVectorType] = mapped_column(
                 TSVectorType("content", auto_index=False)
             )
 
