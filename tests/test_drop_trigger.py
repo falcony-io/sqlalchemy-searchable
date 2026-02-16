@@ -1,7 +1,11 @@
+from collections.abc import Generator
+from typing import Any
+
 import pytest
 from sqlalchemy import text
+from sqlalchemy.engine import Connection, Engine
 
-from sqlalchemy_searchable import drop_trigger, sync_trigger
+from sqlalchemy_searchable import drop_trigger, SearchOptions, sync_trigger
 
 
 class TestDropTrigger:
@@ -11,7 +15,7 @@ class TestDropTrigger:
             "{table}_{column}_trg",
         ]
     )
-    def search_trigger_name(self, request):
+    def search_trigger_name(self, request: pytest.FixtureRequest) -> Any:
         return request.param
 
     @pytest.fixture(
@@ -20,11 +24,11 @@ class TestDropTrigger:
             "{table}_{column}_update",
         ]
     )
-    def search_trigger_function_name(self, request):
+    def search_trigger_function_name(self, request: pytest.FixtureRequest) -> Any:
         return request.param
 
     @pytest.fixture(autouse=True)
-    def create_tables(self, engine):
+    def create_tables(self, engine: Engine) -> Generator[None, None, None]:
         with engine.begin() as conn:
             conn.execute(
                 text(
@@ -44,8 +48,12 @@ class TestDropTrigger:
         with engine.begin() as conn:
             conn.execute(text("DROP TABLE article"))
 
-    def test_drops_triggers_and_functions(self, engine, search_options):
-        def trigger_exist(conn):
+    def test_drops_triggers_and_functions(
+        self,
+        engine: Engine,
+        search_options: SearchOptions,
+    ) -> None:
+        def trigger_exist(conn: Connection) -> Any:
             return conn.execute(
                 text(
                     """SELECT COUNT(*)
@@ -59,9 +67,9 @@ class TestDropTrigger:
                         column="search_vector",
                     )
                 },
-            ).scalar()
+            ).scalar_one()
 
-        def function_exist(conn):
+        def function_exist(conn: Connection) -> Any:
             return conn.execute(
                 text(
                     """SELECT COUNT(*)
@@ -75,7 +83,7 @@ class TestDropTrigger:
                         column="search_vector",
                     )
                 },
-            ).scalar()
+            ).scalar_one()
 
         with engine.begin() as conn:
             sync_trigger(

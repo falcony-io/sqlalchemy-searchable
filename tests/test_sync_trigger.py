@@ -1,8 +1,13 @@
+from collections.abc import Generator
+from typing import Any
+
 import pytest
 import sqlalchemy as sa
 from sqlalchemy import text
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase, Session
 
-from sqlalchemy_searchable import sync_trigger, vectorizer
+from sqlalchemy_searchable import SearchOptions, sync_trigger, vectorizer
 
 
 class TestSyncTrigger:
@@ -12,7 +17,7 @@ class TestSyncTrigger:
             "{table}_{column}_trg",
         ]
     )
-    def search_trigger_name(self, request):
+    def search_trigger_name(self, request: pytest.FixtureRequest) -> Any:
         return request.param
 
     @pytest.fixture(
@@ -21,11 +26,11 @@ class TestSyncTrigger:
             "{table}_{column}_update",
         ]
     )
-    def search_trigger_function_name(self, request):
+    def search_trigger_function_name(self, request: pytest.FixtureRequest) -> Any:
         return request.param
 
     @pytest.fixture(autouse=True)
-    def create_tables(self, engine):
+    def create_tables(self, engine: Engine) -> Generator[None, None, None]:
         with engine.begin() as conn:
             conn.execute(
                 text(
@@ -62,7 +67,11 @@ class TestSyncTrigger:
                 )
             )
 
-    def test_creates_triggers_and_functions(self, engine, search_options):
+    def test_creates_triggers_and_functions(
+        self,
+        engine: Engine,
+        search_options: SearchOptions,
+    ) -> None:
         with engine.begin() as conn:
             sync_trigger(
                 conn,
@@ -80,7 +89,7 @@ class TestSyncTrigger:
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':4 'name':2"
 
-    def test_different_schema(self, engine):
+    def test_different_schema(self, engine: Engine) -> None:
         with engine.begin() as conn:
             sync_trigger(
                 conn,
@@ -100,7 +109,11 @@ class TestSyncTrigger:
             ).scalar()
         assert vector == "'content':4 'name':2"
 
-    def test_updates_column_values(self, engine, search_options):
+    def test_updates_column_values(
+        self,
+        engine: Engine,
+        search_options: SearchOptions,
+    ) -> None:
         with engine.begin() as conn:
             sync_trigger(
                 conn,
@@ -127,8 +140,10 @@ class TestSyncTrigger:
         assert vector == "'content':2"
 
     def test_does_not_update_column_values_when_updating_rows_disabled(
-        self, engine, search_options
-    ):
+        self,
+        engine: Engine,
+        search_options: SearchOptions,
+    ) -> None:
         with engine.begin() as conn:
             sync_trigger(
                 conn,
@@ -155,7 +170,13 @@ class TestSyncTrigger:
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':4 'name':2"
 
-    def test_custom_vectorizers(sel, Base, engine, session, search_options):
+    def test_custom_vectorizers(
+        self,
+        Base: type[DeclarativeBase],
+        engine: Engine,
+        session: Session,
+        search_options: SearchOptions,
+    ) -> None:
         articles = sa.Table(
             "article",
             Base.metadata,
@@ -163,7 +184,7 @@ class TestSyncTrigger:
         )
 
         @vectorizer(articles.c.content)
-        def vectorize_content(column):
+        def vectorize_content(column: sa.ColumnElement[str]) -> sa.ColumnElement[str]:
             return sa.func.replace(column, "bad", "good")
 
         with engine.begin() as conn:
@@ -184,7 +205,11 @@ class TestSyncTrigger:
             vector = conn.execute(text("SELECT search_vector FROM article")).scalar()
         assert vector == "'content':5 'good':4 'name':2"
 
-    def test_trigger_with_reserved_word(self, engine, search_options):
+    def test_trigger_with_reserved_word(
+        self,
+        engine: Engine,
+        search_options: SearchOptions,
+    ) -> None:
         with engine.begin() as conn:
             conn.execute(
                 text(

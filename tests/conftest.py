@@ -1,4 +1,6 @@
 import os
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 from sqlalchemy import (
@@ -11,10 +13,13 @@ from sqlalchemy import (
     Text,
     text,
 )
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import (
     close_all_sessions,
     configure_mappers,
     declarative_base,
+    DeclarativeBase,
+    Session,
     sessionmaker,
 )
 from sqlalchemy_utils import TSVectorType
@@ -40,7 +45,7 @@ if __pypy__:
 
 
 @pytest.fixture
-def engine():
+def engine() -> Generator[Engine, None, None]:
     db_user = os.environ.get("SQLALCHEMY_SEARCHABLE_TEST_USER", "postgres")
     db_password = os.environ.get("SQLALCHEMY_SEARCHABLE_TEST_PASSWORD", "")
     db_name = os.environ.get(
@@ -57,9 +62,9 @@ def engine():
 
 
 @pytest.fixture
-def session(engine):
-    Session = sessionmaker(engine)
-    session = Session()
+def session(engine: Engine) -> Generator[Session, None, None]:
+    SessionFactory = sessionmaker(engine)
+    session = SessionFactory()
 
     yield session
 
@@ -68,12 +73,14 @@ def session(engine):
 
 
 @pytest.fixture
-def search_manager_regconfig():
+def search_manager_regconfig() -> None:
     return None
 
 
 @pytest.fixture
-def Base(search_manager_regconfig):
+def Base(
+    search_manager_regconfig: str | None,
+) -> Generator[type[DeclarativeBase], None, None]:
     Base = declarative_base()
     if search_manager_regconfig:
         make_searchable(
@@ -91,17 +98,20 @@ def Base(search_manager_regconfig):
 
 
 @pytest.fixture
-def search_trigger_name():
+def search_trigger_name() -> str:
     return "{table}_{column}_trigger"
 
 
 @pytest.fixture
-def search_trigger_function_name():
+def search_trigger_function_name() -> str:
     return "{table}_{column}_update"
 
 
 @pytest.fixture
-def search_options(search_trigger_name, search_trigger_function_name):
+def search_options(
+    search_trigger_name: str,
+    search_trigger_function_name: str,
+) -> SearchOptions:
     return SearchOptions(
         search_trigger_name=search_trigger_name,
         search_trigger_function_name=search_trigger_function_name,
@@ -110,7 +120,11 @@ def search_options(search_trigger_name, search_trigger_function_name):
 
 
 @pytest.fixture(autouse=True)
-def create_tables(Base, engine, models):
+def create_tables(
+    Base: type[DeclarativeBase],
+    engine: Engine,
+    models: None,
+) -> Generator[None, None, None]:
     configure_mappers()
     Base.metadata.create_all(engine)
     yield
@@ -118,31 +132,35 @@ def create_tables(Base, engine, models):
 
 
 @pytest.fixture
-def models(TextItem, Article):
+def models(TextItem: type[Any], Article: type[Any]) -> None:
     pass
 
 
 @pytest.fixture
 def TextItem(
-    Base,
-    search_trigger_function_name,
-    search_trigger_name,
-):
+    Base: type[DeclarativeBase],
+    search_trigger_function_name: str,
+    search_trigger_name: str,
+) -> type[Any]:
     ts_vector_options = {
         "auto_index": True,
         "search_trigger_name": search_trigger_name,
         "search_trigger_function_name": search_trigger_function_name,
     }
 
-    class TextItem(Base):
+    class TextItem(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "textitem"
 
         id = Column(Integer, primary_key=True, autoincrement=True)
 
         name = Column(String(255))
 
-        search_vector = Column(TSVectorType("name", "content", **ts_vector_options))
-        content_search_vector = Column(TSVectorType("content", **ts_vector_options))
+        search_vector: Column[TSVectorType] = Column(
+            TSVectorType("name", "content", **ts_vector_options)
+        )
+        content_search_vector: Column[TSVectorType] = Column(
+            TSVectorType("content", **ts_vector_options)
+        )
 
         content = Column(Text)
 
@@ -150,8 +168,8 @@ def TextItem(
 
 
 @pytest.fixture
-def Article(TextItem):
-    class Article(TextItem):
+def Article(TextItem: type[Any]) -> type[Any]:
+    class Article(TextItem):  # type: ignore[misc]
         __tablename__ = "article"
         id = Column(Integer, ForeignKey(TextItem.id), primary_key=True)
         created_at = Column(DateTime)
