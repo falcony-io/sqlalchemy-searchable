@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 
 class TestParse:
@@ -83,7 +84,7 @@ class TestParse:
             ),
         ),
     )
-    def test_parse(self, session, input, output):
+    def test_parse(self, session: Session, input: str, output: str) -> None:
         assert (
             session.execute(
                 text("SELECT parse_websearch('pg_catalog.simple', :input)"),

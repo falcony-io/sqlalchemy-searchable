@@ -1,17 +1,22 @@
 import pytest
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 
 class SchemaTestCase:
     @pytest.fixture
-    def should_create_indexes(self):
+    def should_create_indexes(self) -> list[str]:
         return []
 
     @pytest.fixture
-    def should_create_triggers(self):
+    def should_create_triggers(self) -> list[str]:
         return []
 
-    def test_creates_search_index(self, session, should_create_indexes):
+    def test_creates_search_index(
+        self,
+        session: Session,
+        should_create_indexes: list[str],
+    ) -> None:
         rows = session.execute(
             text(
                 """SELECT relname
@@ -28,7 +33,11 @@ class SchemaTestCase:
         ).fetchall()
         assert should_create_indexes == [row[0] for row in rows]
 
-    def test_creates_search_trigger(self, session, should_create_triggers):
+    def test_creates_search_trigger(
+        self,
+        session: Session,
+        should_create_triggers: list[str],
+    ) -> None:
         rows = session.execute(
             text(
                 """SELECT DISTINCT trigger_name

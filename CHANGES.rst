@@ -18,6 +18,7 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
 - **BREAKING CHANGE**: Replace dictionary-based ``options`` parameter with ``SearchOptions``
   dataclass. This provides better type safety, IDE autocomplete support, and prevents
   runtime errors from typos in option names.
+- Add type annotations
 
 2.2.0 (2026-02-15)
 ^^^^^^^^^^^^^^^^^^
