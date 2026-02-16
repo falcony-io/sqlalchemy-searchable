@@ -377,12 +377,13 @@ def sync_trigger(
     synchronize the trigger to contain this new column::
 
         from alembic import op
+        import sqlalchemy as sa
         from sqlalchemy_searchable import sync_trigger
 
 
-        def upgrade():
+        def upgrade() -> None:
             conn = op.get_bind()
-            op.add_column('article', Column('content', sa.Text))
+            op.add_column('article', sa.Column('content', sa.Text))
 
             sync_trigger(conn, 'article', 'search_vector', ['name', 'content'])
 
@@ -391,26 +392,31 @@ def sync_trigger(
     If you are using vectorizers, you need to initialize them in your migration
     file and pass them to this function::
 
+        from typing import Any
+
         import sqlalchemy as sa
         from alembic import op
         from sqlalchemy.dialects.postgresql import HSTORE
+        from sqlalchemy.orm import Mapped
         from sqlalchemy_searchable import sync_trigger, vectorizer
 
 
-        def upgrade():
+        def upgrade() -> None:
             vectorizer.clear()
 
             conn = op.get_bind()
-            op.add_column('article', Column('name_translations', HSTORE))
+            op.add_column('article', sa.Column('name_translations', HSTORE))
 
             metadata = sa.MetaData()
             articles = sa.Table('article', metadata, autoload_with=conn)
 
             @vectorizer(articles.c.name_translations)
-            def hstore_vectorizer(column):
+            def hstore_vectorizer(
+                column: sa.ColumnClause[Any],
+            ) -> sa.ColumnElement[str]:
                 return sa.cast(sa.func.avals(column), sa.Text)
 
-            op.add_column('article', Column('content', sa.Text))
+            op.add_column('article', sa.Column('content', sa.Text))
             sync_trigger(
                 conn,
                 'article',
@@ -488,7 +494,7 @@ def drop_trigger(
         from sqlalchemy_searchable import drop_trigger
 
 
-        def downgrade():
+        def downgrade() -> None:
             conn = op.get_bind()
 
             drop_trigger(conn, 'article', 'search_vector')

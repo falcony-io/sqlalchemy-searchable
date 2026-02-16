@@ -20,30 +20,33 @@ decorator. The subsequent example demonstrates how to apply a vectorization rule
 values within all :class:`~sqlalchemy.dialects.postgresql.HSTORE`-typed columns present
 in your models::
 
-    from sqlalchemy import cast, func, Text
+    from typing import Any
+
+    from sqlalchemy import cast, ColumnClause, ColumnElement, func, Text
     from sqlalchemy.dialects.postgresql import HSTORE
     from sqlalchemy_searchable import vectorizer
 
 
     @vectorizer(HSTORE)
-    def hstore_vectorizer(column):
+    def hstore_vectorizer(column: ColumnClause[Any]) -> ColumnElement[str]:
         return cast(func.avals(column), Text)
 
 The expression returned by the vectorizer is then employed for all fulltext indexed
 columns of type :class:`~sqlalchemy.dialects.postgresql.HSTORE`. Consider the following
 model as an illustration::
 
-    from sqlalchemy import Column, Integer
+    from sqlalchemy.dialects.postgresql import HSTORE
+    from sqlalchemy.orm import Mapped, mapped_column
     from sqlalchemy_utils import TSVectorType
 
 
     class Article(Base):
         __tablename__ = 'article'
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        name_translations = Column(HSTORE)
-        content_translations = Column(HSTORE)
-        search_vector = Column(
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        name_translations: Mapped[dict[str, str]] = mapped_column(HSTORE)
+        content_translations: Mapped[dict[str, str]] = mapped_column(HSTORE)
+        search_vector: Mapped[TSVectorType] = mapped_column(
             TSVectorType(
                 "name_translations",
                 "content_translations",
@@ -76,16 +79,24 @@ Column vectorizers
 Sometimes you may want to set special vectorizer only for specific column. This
 can be achieved as follows::
 
+    from typing import Any
+
+    from sqlalchemy import cast, func, Text
+    from sqlalchemy.dialects.postgresql import HSTORE
+    from sqlalchemy.orm import Mapped, mapped_column
+
     class Article(Base):
         __tablename__ = "article"
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
-        name_translations = Column(HSTORE)
-        search_vector = Column(TSVectorType("name_translations"))
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        name_translations: Mapped[dict[str, str]] = mapped_column(HSTORE)
+        search_vector: Mapped[TSVectorType] = mapped_column(
+            TSVectorType("name_translations")
+        )
 
 
     @vectorizer(Article.name_translations)
-    def name_vectorizer(column):
+    def name_vectorizer(column: ColumnClause[Any]) -> ColumnElement[str]:
         return cast(func.avals(column), Text)
 
 
