@@ -1,16 +1,12 @@
 import os
 from collections.abc import Generator
+from datetime import datetime
 from typing import Any
 
 import pytest
 from sqlalchemy import (
-    Column,
     create_engine,
-    DateTime,
     ForeignKey,
-    Integer,
-    String,
-    Text,
     text,
 )
 from sqlalchemy.engine import Engine
@@ -19,6 +15,8 @@ from sqlalchemy.orm import (
     configure_mappers,
     declarative_base,
     DeclarativeBase,
+    Mapped,
+    mapped_column,
     Session,
     sessionmaker,
 )
@@ -151,18 +149,18 @@ def TextItem(
     class TextItem(Base):  # type: ignore[misc, valid-type]
         __tablename__ = "textitem"
 
-        id = Column(Integer, primary_key=True, autoincrement=True)
+        id: Mapped[int] = mapped_column(primary_key=True)
 
-        name = Column(String(255))
+        name: Mapped[str]
 
-        search_vector: Column[TSVectorType] = Column(
+        search_vector: Mapped[TSVectorType] = mapped_column(
             TSVectorType("name", "content", **ts_vector_options)
         )
-        content_search_vector: Column[TSVectorType] = Column(
+        content_search_vector: Mapped[TSVectorType] = mapped_column(
             TSVectorType("content", **ts_vector_options)
         )
 
-        content = Column(Text)
+        content: Mapped[str]
 
     return TextItem
 
@@ -171,7 +169,7 @@ def TextItem(
 def Article(TextItem: type[Any]) -> type[Any]:
     class Article(TextItem):  # type: ignore[misc]
         __tablename__ = "article"
-        id = Column(Integer, ForeignKey(TextItem.id), primary_key=True)
-        created_at = Column(DateTime)
+        id: Mapped[int] = mapped_column(ForeignKey(TextItem.id), primary_key=True)
+        created_at: Mapped[datetime | None]
 
     return Article

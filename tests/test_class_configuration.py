@@ -1,7 +1,7 @@
 import pytest
 import sqlalchemy as sa
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class TestClassConfiguration:
@@ -18,7 +18,7 @@ class TestClassConfiguration:
 
         class SomeClass(Base):  # type: ignore[valid-type, misc]
             __tablename__ = "some_class"
-            id = sa.Column(sa.Integer, primary_key=True)
+            id: Mapped[int] = mapped_column(primary_key=True)
 
         sa.orm.configure_mappers()
 

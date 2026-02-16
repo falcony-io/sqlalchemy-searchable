@@ -1,6 +1,7 @@
+from datetime import datetime
+
 import pytest
-import sqlalchemy as sa
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy_utils import TSVectorType
 
 from tests.schema_test_case import SchemaTestCase
@@ -20,15 +21,15 @@ class TestSearchableWithSingleTableInheritance(SchemaTestCase):
         class TextItem(Base):  # type: ignore[valid-type, misc]
             __tablename__ = "textitem"
 
-            id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+            id: Mapped[int] = mapped_column(primary_key=True)
 
-            name = sa.Column(sa.String(255))
+            name: Mapped[str]
 
-            search_vector: sa.Column[TSVectorType] = sa.Column(
+            search_vector: Mapped[TSVectorType] = mapped_column(
                 TSVectorType("name", "content")
             )
 
-            content = sa.Column(sa.Text)
+            content: Mapped[str]
 
         class Article(TextItem):
-            created_at = sa.Column(sa.DateTime)
+            created_at: Mapped[datetime | None]
