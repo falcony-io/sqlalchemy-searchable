@@ -23,10 +23,12 @@ The first step to enable full-text search functionality in your app is to
 configure SQLAlchemy-Searchable using :func:`make_searchable` function by
 passing it your declarative base class::
 
-    from sqlalchemy.orm import declarative_base
+    from sqlalchemy.orm import DeclarativeBase
     from sqlalchemy_searchable import make_searchable
 
-    Base = declarative_base()
+    class Base(DeclarativeBase):
+        pass
+
     make_searchable(Base.metadata)
 
 Define models
@@ -36,16 +38,18 @@ Then, add a search vector column to your model and specify which columns you wan
 be included in the full-text search. Here's an example using an ``Article``
 model::
 
-    from sqlalchemy import Column, Integer, String, Text
+    from sqlalchemy.orm import Mapped, mapped_column
     from sqlalchemy_utils.types import TSVectorType
 
     class Article(Base):
         __tablename__ = "article"
 
-        id = Column(Integer, primary_key=True)
-        name = Column(String(255))
-        content = Column(Text)
-        search_vector = Column(TSVectorType("name", "content"))
+        id: Mapped[int] = mapped_column(primary_key=True)
+        name: Mapped[str]
+        content: Mapped[str]
+        search_vector: Mapped[TSVectorType] = mapped_column(
+            TSVectorType("name", "content")
+        )
 
 The search vector is a special column of
 :class:`~sqlalchemy_utils.types.ts_vector.TSVectorType` data type that is

@@ -19,6 +19,8 @@ Here you can see the full list of changes between each SQLAlchemy-Searchable rel
   dataclass. This provides better type safety, IDE autocomplete support, and prevents
   runtime errors from typos in option names.
 - Add type annotations
+- Update code examples in the documentation to use SQLAlchemy 2.0 style mapped class
+  configuration and type annotations.
 
 2.2.0 (2026-02-15)
 ^^^^^^^^^^^^^^^^^^

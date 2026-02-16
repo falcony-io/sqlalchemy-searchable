@@ -28,11 +28,15 @@ the ``regconfig`` parameter for the
 :class:`~sqlalchemy_utils.types.ts_vector.TSVectorType`. In the following
 example, we use Finnish instead of the default English one::
 
+    from sqlalchemy.orm import Mapped, mapped_column
+
     class Article(Base):
         __tablename__ = "article"
 
-        name = sa.Column(sa.Text(255))
-        search_vector = TSVectorType("name", regconfig="pg_catalog.finnish")
+        name: Mapped[str]
+        search_vector: Mapped[TSVectorType] = mapped_column(
+            TSVectorType("name", regconfig="pg_catalog.finnish")
+        )
 
 Weighting search results
 ------------------------
@@ -41,13 +45,15 @@ To further refine your search results, PostgreSQL's `term weighting system`_
 (ranging from A to D) can be applied. This example demonstrates how to
 prioritize terms found in the article title over those in the content::
 
+    from sqlalchemy.orm import Mapped, mapped_column
+
     class Article(Base):
         __tablename__ = "article"
 
-        id = sa.Column(sa.Integer, primary_key=True)
-        title = sa.Column(sa.String(255))
-        content = sa.Column(sa.Text)
-        search_vector = sa.Column(
+        id: Mapped[int] = mapped_column(primary_key=True)
+        title: Mapped[str]
+        content: Mapped[str]
+        search_vector: Mapped[TSVectorType] = mapped_column(
             TSVectorType("title", "content", weights={"title": "A", "content": "B"})
         )
 
@@ -65,16 +71,21 @@ In cases where a model requires multiple search vectors, SQLAlchemy-Searchable
 has you covered. Here's how you can set up multiple search vectors for an
 ``Article`` class::
 
+    from sqlalchemy.orm import Mapped, mapped_column
+
     class Article(Base):
         __tablename__ = "article"
 
-        id = sa.Column(sa.Integer, primary_key=True)
-        name = sa.Column(sa.String(255))
-        content = sa.Column(sa.Text)
-        description = sa.Column(sa.Text)
-        simple_search_vector = sa.Column(TSVectorType("name"))
-
-        fat_search_vector = sa.Column(TSVectorType("name", "content", "description"))
+        id: Mapped[int] = mapped_column(primary_key=True)
+        name: Mapped[str]
+        content: Mapped[str]
+        description: Mapped[str]
+        simple_search_vector: Mapped[TSVectorType] = mapped_column(
+            TSVectorType("name")
+        )
+        fat_search_vector: Mapped[TSVectorType] = mapped_column(
+            TSVectorType("name", "content", "description")
+        )
 
 You can then choose which search vector to use when querying::
 
@@ -88,29 +99,32 @@ be achieved using combined search vectors. Consider the following model
 definition where each article has one category::
 
     import sqlalchemy as sa
-    from sqlalchemy.orm import declarative_base
+    from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
     from sqlalchemy_utils.types import TSVectorType
 
-    Base = declarative_base()
+    class Base(DeclarativeBase):
+        pass
 
 
     class Category(Base):
         __tablename__ = "category"
 
-        id = sa.Column(sa.Integer, primary_key=True)
-        name = sa.Column(sa.String(255))
-        search_vector = sa.Column(TSVectorType("name"))
+        id: Mapped[int] = mapped_column(primary_key=True)
+        name: Mapped[str]
+        search_vector: Mapped[TSVectorType] = mapped_column(TSVectorType("name"))
 
 
     class Article(Base):
         __tablename__ = "article"
 
-        id = sa.Column(sa.Integer, primary_key=True)
-        name = sa.Column(sa.String(255))
-        content = sa.Column(sa.Text)
-        search_vector = sa.Column(TSVectorType("name", "content"))
-        category_id = sa.Column(sa.Integer, sa.ForeignKey(Category.id))
-        category = sa.orm.relationship(Category)
+        id: Mapped[int] = mapped_column(primary_key=True)
+        name: Mapped[str]
+        content: Mapped[str]
+        search_vector: Mapped[TSVectorType] = mapped_column(
+            TSVectorType("name", "content")
+        )
+        category_id: Mapped[int] = mapped_column(sa.ForeignKey(Category.id))
+        category: Mapped[Category] = relationship()
 
 Now consider a situation where we want to find all articles where either article
 content or name or category name contains the word "matrix". This can be
